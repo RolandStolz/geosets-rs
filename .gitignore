@@ -1,0 +1,5 @@
+/target/
+*.Ds_Store
+.vscode
+
+/data/
