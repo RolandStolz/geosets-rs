@@ -79,7 +79,7 @@ impl GeoSet for HPolytope {
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
-        todo!()
+        todo!("Implement Chebychev center")
     }
 
     fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {

@@ -62,8 +62,9 @@ impl GeoSet for Zonotope {
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
-        self._check_operand_dim(other.dim());
+        self._check_operand_dim(other.dim())?;
         self.G = concatenate![Axis(1), self.G.clone(), other.G.clone()];
+        // self.G = ndarray::concatenate(Axis(1), &[self.G.view(), other.G.view()]);
         self.c = &self.c + &other.c;
         Ok(())
     }

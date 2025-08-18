@@ -1,9 +1,6 @@
 use geosets_rs::sets::GeoSet;
-use geosets_rs::{Interval, VPolytope, Zonotope};
-use ndarray::{array, Array2};
-use plotly::common::Mode;
-use plotly::layout::Layout;
-use plotly::{Plot, Scatter};
+use geosets_rs::{Interval, VPolytope};
+use ndarray::array;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating and plotting geometric sets...");
