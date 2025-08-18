@@ -2,6 +2,7 @@
 use super::*;
 use thiserror::Error;
 
+#[derive(Clone, Debug)]
 #[allow(non_snake_case)]
 pub struct Interval {
     lb: Array1<f64>,
@@ -72,10 +73,6 @@ impl GeoSet for Interval {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
-    }
-
-    fn plot(&self) -> Result<(), SetOperationError> {
         todo!()
     }
 

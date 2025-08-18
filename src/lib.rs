@@ -1,3 +1,4 @@
+mod geometric_operations;
 pub mod sets;
 
 pub use sets::hpolytope::HPolytope;

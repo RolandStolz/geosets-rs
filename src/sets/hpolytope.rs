@@ -3,6 +3,7 @@ use super::*;
 use good_lp::{default_solver, variable, variables, Expression, ProblemVariables, SolverModel};
 use thiserror::Error;
 
+#[derive(Clone, Debug)]
 #[allow(non_snake_case)]
 pub struct HPolytope {
     A: Array2<f64>,
@@ -93,10 +94,6 @@ impl GeoSet for HPolytope {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
-    }
-
-    fn plot(&self) -> Result<(), SetOperationError> {
         todo!()
     }
 

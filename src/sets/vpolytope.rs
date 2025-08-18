@@ -1,6 +1,9 @@
 #![allow(unused)]
 use super::*;
+use plotly::common::Mode;
+use plotly::{Plot, Scatter};
 
+#[derive(Clone, Debug)]
 pub struct VPolytope {
     vertices: Array2<f64>,
 }
@@ -44,10 +47,6 @@ impl GeoSet for VPolytope {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
-    }
-
-    fn plot(&self) -> Result<(), SetOperationError> {
         todo!()
     }
 

@@ -2,6 +2,7 @@
 use super::*;
 use thiserror::Error;
 
+#[derive(Clone, Debug)]
 #[allow(non_snake_case)]
 pub struct Zonotope {
     G: Array2<f64>,
@@ -83,10 +84,6 @@ impl GeoSet for Zonotope {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
-    }
-
-    fn plot(&self) -> Result<(), SetOperationError> {
         todo!()
     }
 

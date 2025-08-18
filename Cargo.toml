@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 good_lp = "1.14.0"
 ndarray = "0.15.6"
+plotly = "0.13.5"
 rstest = "0.26.1"
 thiserror = "2.0.15"
