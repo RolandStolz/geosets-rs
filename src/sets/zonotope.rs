@@ -1,14 +1,15 @@
+#![allow(unused)]
 use super::*;
 
 #[allow(non_snake_case)]
-struct Zonotope {
+pub struct Zonotope {
     G: Array2<f64>,
     c: Array1<f64>,
 }
 
 #[allow(non_snake_case)]
 impl Zonotope {
-    fn new(G: Array2<f64>, c: Array1<f64>) -> Result<Zonotope, ZonotopeError> {
+    pub fn new(G: Array2<f64>, c: Array1<f64>) -> Result<Zonotope, ZonotopeError> {
         if G.dim().0 != c.dim() {
             Err(ZonotopeError::DimensionMismatch)
         } else {
@@ -17,13 +18,24 @@ impl Zonotope {
     }
 }
 
+#[allow(non_snake_case)]
 impl GeoSet for Zonotope {
+    fn from_unit_box(dim: usize) -> Result<Self, SetOperationError> {
+        let G = Array2::eye(dim);
+        let c = Array1::zeros(dim);
+        Ok(Zonotope::new(G, c).unwrap())
+    }
+
     fn dim(&self) -> usize {
         self.c.dim()
     }
 
-    fn to_vertices(&self) -> Array2<f64> {
-        Array::ones((self.dim(), 5))
+    fn empty(&self) -> bool {
+        false
+    }
+
+    fn to_vertices(&self) -> Result<Self, SetOperationError> {
+        todo!()
     }
 
     fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
@@ -38,7 +50,7 @@ impl GeoSet for Zonotope {
         }
     }
 
-    fn linear_transform(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
+    fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
         if self.dim() != mat.dim().0 {
             Err(SetOperationError::DimensionMismatch)
         } else {
@@ -46,8 +58,36 @@ impl GeoSet for Zonotope {
         }
     }
 
-    fn scalar_product(&self, scalar: f64) -> Result<Self, SetOperationError> {
-        Ok(Self::new(scalar * self.G.clone(), scalar * self.c.clone()).unwrap())
+    fn center(&self) -> Result<Array1<f64>, SetOperationError> {
+        todo!()
+    }
+
+    fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {
+        todo!()
+    }
+
+    fn volume(&self) -> Result<f64, SetOperationError> {
+        todo!()
+    }
+
+    fn plot(&self) -> Result<(), SetOperationError> {
+        todo!()
+    }
+
+    fn minkowski_sum_(&self, other: &Self) -> Result<(), SetOperationError> {
+        todo!()
+    }
+
+    fn matmul_(&self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
+        todo!()
+    }
+
+    fn translate(&self, vector: &Array1<f64>) -> Result<Self, SetOperationError> {
+        todo!()
+    }
+
+    fn translate_(&self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
+        todo!()
     }
 }
 
@@ -89,7 +129,7 @@ mod tests {
         let zono1 = Zonotope::new(Array::ones((2, 3)), Array::zeros(2)).unwrap();
         let mat = Array::eye(2);
 
-        let zono2 = zono1.linear_transform(&mat).unwrap();
+        let zono2 = zono1.matmul(&mat).unwrap();
 
         assert_eq!(zono2.G, array![[1., 1.], [1., 1.], [1., 1.]].t());
         assert_eq!(zono2.c, array![0., 0.]);
@@ -98,7 +138,6 @@ mod tests {
         let zono1 = Zonotope::new(Array::ones((2, 3)), Array::zeros(2)).unwrap();
         let mat = Array::eye(3);
 
-        assert!(zono1.linear_transform(&mat).is_err());
+        assert!(zono1.matmul(&mat).is_err());
     }
-
 }
