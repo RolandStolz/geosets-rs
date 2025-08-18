@@ -1,5 +1,6 @@
 #![allow(unused)]
 use super::*;
+use thiserror::Error;
 
 #[allow(non_snake_case)]
 pub struct Zonotope {
@@ -7,11 +8,20 @@ pub struct Zonotope {
     c: Array1<f64>,
 }
 
+#[derive(Error, Debug)]
+pub enum ZonotopeError {
+    #[error("Dimensions of G {g_dim:?} and c {c_dim:?} do not match")]
+    DimensionMismatch { g_dim: (usize, usize), c_dim: usize },
+}
+
 #[allow(non_snake_case)]
 impl Zonotope {
     pub fn new(G: Array2<f64>, c: Array1<f64>) -> Result<Zonotope, ZonotopeError> {
         if G.dim().0 != c.dim() {
-            Err(ZonotopeError::DimensionMismatch)
+            Err(ZonotopeError::DimensionMismatch {
+                g_dim: G.dim(),
+                c_dim: c.dim(),
+            })
         } else {
             Ok(Zonotope { G, c })
         }
@@ -20,27 +30,30 @@ impl Zonotope {
 
 #[allow(non_snake_case)]
 impl GeoSet for Zonotope {
-    fn from_unit_box(dim: usize) -> Result<Self, SetOperationError> {
+    fn from_unit_box(dim: usize) -> Self {
         let G = Array2::eye(dim);
         let c = Array1::zeros(dim);
-        Ok(Zonotope::new(G, c).unwrap())
+        Zonotope::new(G, c).unwrap()
     }
 
     fn dim(&self) -> usize {
         self.c.dim()
     }
 
-    fn empty(&self) -> bool {
-        false
+    fn empty(&self) -> Result<bool, SetOperationError> {
+        Ok(false)
     }
 
-    fn to_vertices(&self) -> Result<Self, SetOperationError> {
+    fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
         todo!()
     }
 
     fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
         if self.dim() != other.dim() {
-            Err(SetOperationError::DimensionMismatch)
+            Err(SetOperationError::DimensionMismatch {
+                expected: self.dim(),
+                got: other.dim(),
+            })
         } else {
             Ok(Self::new(
                 concatenate![Axis(1), self.G, other.G],
@@ -52,7 +65,10 @@ impl GeoSet for Zonotope {
 
     fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
         if self.dim() != mat.dim().0 {
-            Err(SetOperationError::DimensionMismatch)
+            Err(SetOperationError::DimensionMismatch {
+                expected: self.dim(),
+                got: mat.dim().0,
+            })
         } else {
             Ok(Self::new(mat.dot(&self.G), mat.dot(&self.c)).unwrap())
         }

@@ -1,6 +1,7 @@
 #![allow(unused)]
 use super::*;
 use good_lp::{default_solver, variable, variables, Expression, ProblemVariables, SolverModel};
+use thiserror::Error;
 
 #[allow(non_snake_case)]
 pub struct HPolytope {
@@ -8,11 +9,20 @@ pub struct HPolytope {
     b: Array1<f64>,
 }
 
+#[derive(Error, Debug)]
+pub enum HPolytopeError {
+    #[error("Dimensions of A {a_dim:?} and b {b_dim:?} do not match")]
+    DimensionMismatch { a_dim: (usize, usize), b_dim: usize },
+}
+
 #[allow(non_snake_case)]
 impl HPolytope {
     pub fn new(A: Array2<f64>, b: Array1<f64>) -> Result<HPolytope, HPolytopeError> {
         if A.dim().0 != b.dim() {
-            Err(HPolytopeError::DimensionMismatch)
+            Err(HPolytopeError::DimensionMismatch {
+                a_dim: A.dim(),
+                b_dim: b.dim(),
+            })
         } else {
             Ok(HPolytope { A, b })
         }
@@ -21,21 +31,21 @@ impl HPolytope {
 
 #[allow(non_snake_case)]
 impl GeoSet for HPolytope {
-    fn from_unit_box(dim: usize) -> Result<Self, SetOperationError> {
+    fn from_unit_box(dim: usize) -> Self {
         let A = ndarray::concatenate(
             Axis(0),
             &[Array2::eye(dim).view(), (-Array2::eye(dim)).view()],
         )
         .unwrap();
         let b = Array1::zeros(dim * 2);
-        Ok(HPolytope::new(A, b).unwrap())
+        HPolytope::new(A, b).unwrap()
     }
 
     fn dim(&self) -> usize {
         self.A.dim().1
     }
 
-    fn empty(&self) -> bool {
+    fn empty(&self) -> Result<bool, SetOperationError> {
         let m = self.A.nrows();
         let n = self.A.ncols();
 
@@ -57,12 +67,12 @@ impl GeoSet for HPolytope {
 
         // Try solving
         match problem.solve() {
-            Ok(_) => false, // feasible → not empty
-            Err(_) => true, // infeasible → empty
+            Ok(_) => Ok(false), // feasible → not empty
+            Err(_) => Ok(true), // infeasible → empty
         }
     }
 
-    fn to_vertices(&self) -> Result<Self, SetOperationError> {
+    fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
         todo!()
     }
 

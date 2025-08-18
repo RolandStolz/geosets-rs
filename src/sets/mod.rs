@@ -1,22 +1,23 @@
 use ndarray::concatenate;
 use ndarray::prelude::*;
 
-use self::errors::{HPolytopeError, SetOperationError, ZonotopeError};
+use self::errors::SetOperationError;
 
 pub mod errors;
 pub mod hpolytope;
+pub mod interval;
 pub mod vpolytope;
 pub mod zonotope;
 
 // TODO: figure out how you can use the specific set error in the result!
 pub trait GeoSet: Sized {
     fn dim(&self) -> usize;
-    fn empty(&self) -> bool;
+    fn empty(&self) -> Result<bool, SetOperationError>;
 
     // Static function
-    fn from_unit_box(dim: usize) -> Result<Self, SetOperationError>;
+    fn from_unit_box(dim: usize) -> Self;
 
-    fn to_vertices(&self) -> Result<Self, SetOperationError>;
+    fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError>;
     fn center(&self) -> Result<Array1<f64>, SetOperationError>;
     fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError>;
     fn volume(&self) -> Result<f64, SetOperationError>;
