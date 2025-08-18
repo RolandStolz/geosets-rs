@@ -50,28 +50,21 @@ impl GeoSet for VPolytope {
         todo!()
     }
 
-    fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
+    fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
         todo!()
     }
 
-    fn minkowski_sum_(&self, other: &Self) -> Result<(), SetOperationError> {
-        todo!()
+    fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(mat.dim().0);
+        self.vertices = mat.dot(&self.vertices);
+        Ok(())
     }
 
-    fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn matmul_(&self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
-        todo!()
-    }
-
-    fn translate(&self, vector: &Array1<f64>) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn translate_(&self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn translate_(&mut self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(vector.dim())?;
+        // Translate each vertex by the vector
+        self.vertices = &self.vertices + &vector.view().insert_axis(Axis(0));
+        Ok(())
     }
 }
 

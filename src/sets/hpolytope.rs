@@ -1,6 +1,7 @@
 #![allow(unused)]
 use super::*;
-use good_lp::{default_solver, variable, variables, Expression, ProblemVariables, SolverModel};
+use crate::linalg_utils::rank;
+use good_lp::{default_solver, variable, variables, Expression, SolverModel};
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -77,14 +78,6 @@ impl GeoSet for HPolytope {
         todo!()
     }
 
-    fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
         todo!()
     }
@@ -97,20 +90,27 @@ impl GeoSet for HPolytope {
         todo!()
     }
 
-    fn minkowski_sum_(&self, other: &Self) -> Result<(), SetOperationError> {
+    fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
         todo!()
     }
 
-    fn matmul_(&self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
+        let (m, n) = mat.dim();
+        self._check_operand_dim(m)?;
+        let mat_rank = rank(mat).unwrap();
+
+        if m == n && mat_rank == n {
+            self.A = self.A.dot(mat);
+        } else if m > n {
+            return Err(SetOperationError::NotImplemented);
+        }
+        Ok(())
     }
 
-    fn translate(&self, vector: &Array1<f64>) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn translate_(&self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn translate_(&mut self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(vector.dim())?;
+        self.b = &self.b + &self.A.dot(vector);
+        Ok(())
     }
 }
 

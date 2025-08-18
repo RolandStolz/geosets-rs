@@ -53,15 +53,17 @@ impl GeoSet for Interval {
     }
 
     fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
-        todo!()
-    }
-
-    fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
-        todo!()
+        let mut vertices = Array2::zeros((1 << self.dim(), self.dim()));
+        for i in 0..(1 << self.dim()) {
+            for j in 0..self.dim() {
+                vertices[[i, j]] = if (i & (1 << j)) != 0 {
+                    self.ub[j]
+                } else {
+                    self.lb[j]
+                };
+            }
+        }
+        Ok(vertices)
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
@@ -76,19 +78,32 @@ impl GeoSet for Interval {
         todo!()
     }
 
-    fn minkowski_sum_(&self, other: &Self) -> Result<(), SetOperationError> {
+    fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
         todo!()
     }
 
-    fn matmul_(&self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(mat.dim().0);
+
+        let mat_lb = mat.dot(&self.lb);
+        let mat_ub = mat.dot(&self.ub);
+
+        // Create arrays for positive and negative parts of the matrix
+        let mat_pos = mat.mapv(|x| x.max(0.0));
+        let mat_neg = mat.mapv(|x| x.min(0.0));
+
+        // For positive matrix elements: pos * [lb, ub] = [pos*lb, pos*ub]
+        // For negative matrix elements: neg * [lb, ub] = [neg*ub, neg*lb]
+        self.lb = mat_pos.dot(&self.lb) + mat_neg.dot(&self.ub);
+        self.ub = mat_pos.dot(&self.ub) + mat_neg.dot(&self.lb);
+
+        Ok(())
     }
 
-    fn translate(&self, vector: &Array1<f64>) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn translate_(&self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn translate_(&mut self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(vector.dim());
+        self.lb += vector;
+        self.ub += vector;
+        Ok(())
     }
 }

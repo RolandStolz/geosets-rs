@@ -49,32 +49,6 @@ impl GeoSet for Zonotope {
         todo!()
     }
 
-    fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
-        if self.dim() != other.dim() {
-            Err(SetOperationError::DimensionMismatch {
-                expected: self.dim(),
-                got: other.dim(),
-            })
-        } else {
-            Ok(Self::new(
-                concatenate![Axis(1), self.G, other.G],
-                self.c.clone() + other.c.clone(),
-            )
-            .unwrap())
-        }
-    }
-
-    fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
-        if self.dim() != mat.dim().0 {
-            Err(SetOperationError::DimensionMismatch {
-                expected: self.dim(),
-                got: mat.dim().0,
-            })
-        } else {
-            Ok(Self::new(mat.dot(&self.G), mat.dot(&self.c)).unwrap())
-        }
-    }
-
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
         todo!()
     }
@@ -87,20 +61,24 @@ impl GeoSet for Zonotope {
         todo!()
     }
 
-    fn minkowski_sum_(&self, other: &Self) -> Result<(), SetOperationError> {
-        todo!()
+    fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
+        self._check_operand_dim(other.dim());
+        self.G = concatenate![Axis(1), self.G.clone(), other.G.clone()];
+        self.c = &self.c + &other.c;
+        Ok(())
     }
 
-    fn matmul_(&self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(mat.dim().0)?;
+        self.c = mat.dot(&self.c);
+        self.G = mat.dot(&self.G);
+        Ok(())
     }
 
-    fn translate(&self, vector: &Array1<f64>) -> Result<Self, SetOperationError> {
-        todo!()
-    }
-
-    fn translate_(&self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
-        todo!()
+    fn translate_(&mut self, vector: &Array1<f64>) -> Result<(), SetOperationError> {
+        self._check_operand_dim(vector.dim())?;
+        self.c = &self.c + vector;
+        Ok(())
     }
 }
 

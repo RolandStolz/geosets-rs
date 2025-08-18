@@ -25,22 +25,22 @@ pub trait GeoSet: Sized + Clone {
     fn volume(&self) -> Result<f64, SetOperationError>;
 
     // Operations
-    fn minkowski_sum_(&self, other: &Self) -> Result<(), SetOperationError>;
-    fn matmul_(&self, mat: &Array2<f64>) -> Result<(), SetOperationError>;
-    fn translate_(&self, vector: &Array1<f64>) -> Result<(), SetOperationError>;
+    fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError>;
+    fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError>;
+    fn translate_(&mut self, vector: &Array1<f64>) -> Result<(), SetOperationError>;
 
     fn minkowski_sum(&self, other: &Self) -> Result<Self, SetOperationError> {
-        let copy = self.clone();
+        let mut copy = self.clone();
         copy.minkowski_sum_(other)?;
         Ok(copy)
     }
     fn matmul(&self, mat: &Array2<f64>) -> Result<Self, SetOperationError> {
-        let copy = self.clone();
+        let mut copy = self.clone();
         copy.matmul_(mat)?;
         Ok(copy)
     }
     fn translate(&self, vector: &Array1<f64>) -> Result<Self, SetOperationError> {
-        let copy = self.clone();
+        let mut copy = self.clone();
         copy.translate_(vector)?;
         Ok(copy)
     }
@@ -73,5 +73,16 @@ pub trait GeoSet: Sized + Clone {
         }
 
         Ok(plot)
+    }
+
+    // Utils
+    fn _check_operand_dim(&self, dim: usize) -> Result<(), SetOperationError> {
+        if dim != self.dim() {
+            return Err(SetOperationError::DimensionMismatch {
+                expected: self.dim(),
+                got: dim,
+            });
+        }
+        Ok(())
     }
 }
