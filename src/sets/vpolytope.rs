@@ -1,5 +1,9 @@
 #![allow(unused)]
+use crate::geometric_operations::convex_hull;
+
 use super::*;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
+use ndarray_rand::RandomExt;
 use plotly::common::Mode;
 use plotly::{Plot, Scatter};
 use thiserror::Error;
@@ -23,8 +27,24 @@ impl VPolytope {
         Ok(VPolytope { vertices })
     }
 
+    pub fn from_random(dim: usize, n_vertices: usize) -> Result<VPolytope, VPolytopeError> {
+        let vertices = Array2::random((n_vertices, dim), Uniform::new(-1.0, 1.0));
+        VPolytope::new(vertices)
+    }
+
     pub fn n_vertices(&self) -> usize {
         self.vertices.nrows()
+    }
+
+    pub fn compact_(&mut self) -> Result<(), SetOperationError> {
+        self.vertices = convex_hull(self.vertices.clone())?;
+        Ok(())
+    }
+
+    pub fn compact(&self) -> Result<VPolytope, SetOperationError> {
+        let mut copy = self.clone();
+        copy.compact_()?;
+        Ok(copy)
     }
 }
 
@@ -49,7 +69,7 @@ impl GeoSet for VPolytope {
     }
 
     fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
-        Ok(self.vertices.clone())
+        Ok(self.compact()?.vertices)
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {

@@ -69,7 +69,9 @@ pub trait GeoSet: Sized + Clone {
         let x = closed_vertices.column(dim.0).to_vec();
         let y = closed_vertices.column(dim.1).to_vec();
 
-        let mut trace = Scatter::new(x, y).mode(Mode::LinesMarkers);
+        let mut trace = Scatter::new(x, y)
+            .mode(Mode::LinesMarkers)
+            .fill(plotly::common::Fill::ToSelf).opacity(0.8);
 
         if let Some(trace_name) = name {
             trace = trace.name(trace_name);

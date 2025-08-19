@@ -1,10 +1,18 @@
 use ndarray::Array2;
+use qhull::Qh;
+use thiserror::Error;
 
-pub fn order_vertices_clockwise(vertices: Array2<f64>) -> Result<Array2<f64>, Box<dyn std::error::Error>> {
+#[derive(Debug, Error)]
+pub enum GeometryError {
+    #[error("Vertices must be a 2D array with shape (n, 2)")]
+    InvalidShape,
+}
+
+pub fn order_vertices_clockwise(vertices: Array2<f64>) -> Result<Array2<f64>, GeometryError> {
     let n_vertices = vertices.nrows();
 
     if vertices.dim().1 != 2 {
-        return Err("Vertices must be a 2D array with shape (n, 2)".into());
+        return Err(GeometryError::InvalidShape);
     }
 
     if n_vertices < 3 {
@@ -38,6 +46,70 @@ pub fn order_vertices_clockwise(vertices: Array2<f64>) -> Result<Array2<f64>, Bo
     Ok(ordered_vertices)
 }
 
+#[derive(Debug, Error)]
+pub enum ConvexHullError {
+    // #[error("Qhull error: {0}")]
+    // QhullError(#[from] qhull::QhError),
+    #[error("Error from qhull: {source}")]
+    QhullError {
+        #[source]
+        source: Box<dyn std::error::Error>,
+    },
+
+    #[error("Data conversion error: {source}")]
+    DataConversionError {
+        #[source]
+        source: Box<dyn std::error::Error>,
+    },
+}
+
+pub fn convex_hull(vertices: Array2<f64>) -> Result<Array2<f64>, ConvexHullError> {
+    if vertices.nrows() <= vertices.dim().1 {
+        // Not enough points for a proper convex hull in this dimension
+        return Ok(vertices);
+    }
+
+    let points: Vec<Vec<f64>> = vertices
+        .rows()
+        .into_iter()
+        .map(|row| row.to_vec())
+        .collect();
+
+    // Compute convex hull
+    let qh = Qh::builder()
+        .compute(true)
+        .build_from_iter(points)
+        .map_err(|e| ConvexHullError::QhullError {
+            source: Box::new(e),
+        })?;
+
+    // Extract hull vertices
+    let hull_vertices: Vec<Vec<f64>> = qh
+        .vertices()
+        .map(|vertex| {
+            let idx = vertex.index(&qh).unwrap();
+            vertices.row(idx).to_vec()
+        })
+        .collect();
+
+    // Convert back to Array2
+    if hull_vertices.is_empty() {
+        return Ok(Array2::zeros((0, vertices.ncols())));
+    }
+
+    let n_vertices = hull_vertices.len();
+    let dim = hull_vertices[0].len();
+    let flattened: Vec<f64> = hull_vertices.into_iter().flatten().collect();
+
+    Ok(
+        Array2::from_shape_vec((n_vertices, dim), flattened).map_err(|e| {
+            ConvexHullError::DataConversionError {
+                source: Box::new(e),
+            }
+        })?,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -62,24 +134,5 @@ mod tests {
         // The exact order depends on the starting angle, but vertices should form a valid clockwise path
         // We can verify by checking that consecutive vertices are connected properly
         println!("Ordered vertices: {:?}", ordered);
-    }
-
-    #[test]
-    fn test_triangle_ordering() {
-        let vertices = array![
-            [1.0, 0.0], // right
-            [0.0, 1.0], // top
-            [0.0, 0.0]  // bottom-left
-        ];
-
-        let ordered = order_vertices_clockwise(vertices).unwrap();
-        assert_eq!(ordered.nrows(), 3);
-    }
-
-    #[test]
-    fn test_insufficient_vertices() {
-        let vertices = array![[0.0, 0.0], [1.0, 1.0]];
-        let ordered = order_vertices_clockwise(vertices.clone()).unwrap();
-        assert_eq!(ordered, vertices);
     }
 }

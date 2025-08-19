@@ -1,8 +1,10 @@
 #![allow(unused)]
 use super::*;
+use crate::geometric_operations::convex_hull;
 use ndarray::Shape;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
 use ndarray_rand::RandomExt;
+use qhull::Qh;
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -21,7 +23,7 @@ pub enum ZonotopeError {
 #[allow(non_snake_case)]
 impl Zonotope {
     pub fn new(G: Array2<f64>, c: Array1<f64>) -> Result<Zonotope, ZonotopeError> {
-        if G.dim().0 != c.dim() {
+        if G.dim().1 != c.dim() {
             Err(ZonotopeError::DimensionMismatch {
                 g_dim: G.dim(),
                 c_dim: c.dim(),
@@ -57,7 +59,7 @@ impl Zonotope {
     }
 
     pub fn n_generators(&self) -> usize {
-        self.G.ncols()
+        self.G.nrows()
     }
 }
 
@@ -89,11 +91,11 @@ impl GeoSet for Zonotope {
                 ],
             )
             .unwrap();
-
-            // TODO: The convex hull needs to be computed here
         }
 
-        Ok(vertices)
+        // Compute convex hull using qhull -> automatically propagates error
+        let hull_vertices = convex_hull(vertices)?;
+        Ok(hull_vertices)
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {

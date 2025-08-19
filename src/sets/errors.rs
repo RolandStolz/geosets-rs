@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::geometric_operations::ConvexHullError;
+
 #[derive(Error, Debug)]
 pub enum SetOperationError {
     #[error("Dimension mismatch: expected {expected}, got {got}")]
@@ -19,6 +21,15 @@ pub enum SetOperationError {
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    // #[error("Convex hull computation failed: {source}")]
+    // ConvexHullError {
+    //     #[source]
+    //     source: Box<dyn std::error::Error>,
+    // },
+
+    #[error("ConvexHull error: {0}")]
+    QhullError(#[from] ConvexHullError),
 
     #[error("Set is empty")]
     EmptySet,
