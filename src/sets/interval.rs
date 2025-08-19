@@ -80,7 +80,7 @@ impl GeoSet for Interval {
         Ok(center)
     }
 
-    fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {
+    fn support_function(&self, direction: Array1<f64>) -> Result<(Array1<f64>, f64), SetOperationError> {
         todo!()
     }
 

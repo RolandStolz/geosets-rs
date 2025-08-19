@@ -138,3 +138,20 @@ test_all_geosets!(test_volume_common, {
         assert!(set.volume().unwrap() - 2f64.powi(dim as i32) < 1e-6);
     }
 });
+
+test_all_geosets!(test_support_function_common, {
+    let set = T::from_unit_box(2);
+
+    let (support_vector, support_value) = set.support_function(array![1.0, 0.0]).unwrap();
+    assert_eq!(support_vector, array![1.0, 0.0]);
+    assert_eq!(support_value, 1.0);
+
+    let (support_vector, support_value) = set.support_function(array![0.0, 1.0]).unwrap();
+    assert_eq!(support_vector, array![0.0, 1.0]);
+    assert_eq!(support_value, 1.0);
+
+    let (support_vector, support_value) = set.support_function(array![1.0, 1.0]).unwrap();
+    assert_eq!(support_vector, array![1.0, 1.0]);
+    println!("Support value: {}", support_value);
+    assert_eq!(support_value, 2.0);
+});

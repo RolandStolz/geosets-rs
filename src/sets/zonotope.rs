@@ -1,7 +1,7 @@
 #![allow(unused)]
 use super::*;
-use crate::qhull_wrapper::convex_hull_vertices;
 use crate::linalg_utils::rank;
+use crate::qhull_wrapper::convex_hull_vertices;
 use itertools::Itertools;
 use ndarray::Shape;
 use ndarray_linalg::Determinant;
@@ -105,8 +105,28 @@ impl GeoSet for Zonotope {
         Ok(self.c.clone())
     }
 
-    fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {
-        todo!()
+    fn support_function(
+        &self,
+        direction: Array1<f64>,
+    ) -> Result<(Array1<f64>, f64), SetOperationError> {
+        self._check_operand_dim(direction.dim())?;
+
+        let projection = self.G.dot(&direction);
+        // signum is not correct here!
+        let projection_sign = projection.mapv(|x| {
+            if x > 0.0 {
+                1.0
+            } else if x < 0.0 {
+                -1.0
+            } else {
+                0.0
+            }
+        });
+
+        let support_value = direction.dot(&self.c) + projection.abs().sum();
+        let support_vector = &self.c + projection_sign.dot(&self.G);
+
+        Ok((support_vector, support_value))
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
