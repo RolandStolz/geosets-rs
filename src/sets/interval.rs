@@ -1,5 +1,7 @@
 #![allow(unused)]
 use super::*;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
+use ndarray_rand::RandomExt;
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -32,6 +34,13 @@ impl Interval {
         }
 
         Ok(Interval { lb: lb, ub: ub })
+    }
+
+    pub fn from_random(dim: usize) -> Result<Interval, IntervalError> {
+        let lb = Array1::random(dim, Uniform::new(-1.0, 0.0));
+        let ub = Array1::random(dim, Uniform::new(0.0, 1.0));
+
+        Interval::new(lb, ub)
     }
 }
 

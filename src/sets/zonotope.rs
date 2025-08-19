@@ -1,6 +1,8 @@
 #![allow(unused)]
 use super::*;
 use ndarray::Shape;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
+use ndarray_rand::RandomExt;
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -27,6 +29,31 @@ impl Zonotope {
         } else {
             Ok(Zonotope { G, c })
         }
+    }
+
+    pub fn from_random(
+        dim: usize,
+        n_generators: usize,
+        zero_centered: bool,
+    ) -> Result<Zonotope, ZonotopeError> {
+        let mut G = Array2::random((n_generators, dim), Exp1);
+
+        let mut c = if zero_centered {
+            Array1::zeros(dim)
+        } else {
+            Array1::random(dim, Uniform::new(-0.2, 0.2))
+        };
+
+        let max_deviation = c.abs() + G.abs().sum_axis(Axis(0));
+        // get max of max_deviation as scalar
+        let scale = max_deviation.fold(0.0_f64, |a, &b| a.max(b));
+
+        if scale > 1. {
+            G /= scale;
+            c /= scale;
+        }
+
+        Ok(Zonotope { G, c })
     }
 
     pub fn n_generators(&self) -> usize {
@@ -62,7 +89,7 @@ impl GeoSet for Zonotope {
                 ],
             )
             .unwrap();
-            
+
             // TODO: The convex hull needs to be computed here
         }
 

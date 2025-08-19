@@ -1,6 +1,7 @@
 use ndarray::concatenate;
 use ndarray::prelude::*;
 use plotly::common::Mode;
+use plotly::Layout;
 use plotly::Trace;
 use plotly::{Plot, Scatter};
 
@@ -46,7 +47,11 @@ pub trait GeoSet: Sized + Clone {
     }
 
     // Generic implementations
-    fn create_trace(&self, dim: (usize, usize)) -> Result<Box<dyn Trace>, SetOperationError> {
+    fn create_trace(
+        &self,
+        dim: (usize, usize),
+        name: Option<&str>,
+    ) -> Result<Box<dyn Trace>, SetOperationError> {
         use crate::geometric_operations::order_vertices_clockwise;
         let full_vertices = self.to_vertices()?;
         let col_x = full_vertices.column(dim.0);
@@ -64,14 +69,31 @@ pub trait GeoSet: Sized + Clone {
         let x = closed_vertices.column(dim.0).to_vec();
         let y = closed_vertices.column(dim.1).to_vec();
 
-        let trace = Scatter::new(x, y).mode(Mode::LinesMarkers);
+        let mut trace = Scatter::new(x, y).mode(Mode::LinesMarkers);
+
+        if let Some(trace_name) = name {
+            trace = trace.name(trace_name);
+        }
+
         Ok(trace)
     }
 
-    fn plot(&self, dim: (usize, usize), show: bool) -> Result<Plot, SetOperationError> {
+    fn plot(
+        &self,
+        dim: (usize, usize),
+        equal_axis: bool,
+        show: bool,
+    ) -> Result<Plot, SetOperationError> {
         let mut plot = Plot::new();
-        let trace = self.create_trace(dim).unwrap();
+        let trace = self.create_trace(dim, None).unwrap();
         plot.add_trace(trace);
+
+        if equal_axis {
+            let layout = Layout::new()
+                .x_axis(plotly::layout::Axis::new())
+                .y_axis(plotly::layout::Axis::new().scale_anchor("x"));
+            plot.set_layout(layout);
+        }
 
         if show {
             plot.show();
