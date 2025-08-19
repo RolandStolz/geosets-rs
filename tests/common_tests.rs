@@ -34,11 +34,29 @@ test_all_geosets!(test_empty_common, {
     assert!(!set.empty().unwrap(), "Unit box should not be empty");
 });
 
+test_all_geosets!(test_center_common, {
+    for dim in 2..5 {
+        let set = T::from_unit_box(dim);
+        if let Ok(center) = set.center() {
+            assert_eq!(
+                center.len(),
+                dim,
+                "Center dimension should match the set dimension"
+            );
+
+            // For a unit box centered at the origin, all coordinates should be 0
+            for val in center.iter() {
+                assert_eq!(*val, 0.0, "Center of unit box should be at the origin");
+            }
+        }
+    }
+});
+
 test_all_geosets!(test_translate_common, {
     for dim in 2..5 {
         let set = T::from_unit_box(dim);
         // Create a translation vector filled with 1.0
-        let translation = Array1::from_elem(dim, 1.0);
+        let translation = Array1::ones(dim);
 
         if let Ok(translated) = set.translate(&translation) {
             // The dimension should remain the same

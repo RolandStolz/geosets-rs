@@ -7,4 +7,10 @@ pub enum SetOperationError {
 
     #[error("Operation not implemented")]
     NotImplemented,
+
+    #[error("Optimization failed: {source}")]
+    InfeasibleOptimization { 
+        #[source] 
+        source: Box<dyn std::error::Error + Send + Sync> 
+    },
 }

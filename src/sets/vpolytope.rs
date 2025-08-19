@@ -2,15 +2,29 @@
 use super::*;
 use plotly::common::Mode;
 use plotly::{Plot, Scatter};
+use thiserror::Error;
 
 #[derive(Clone, Debug)]
 pub struct VPolytope {
     vertices: Array2<f64>,
 }
 
+#[derive(Error, Debug)]
+pub enum VPolytopeError {
+    #[error("Vertices must not be empty!")]
+    EmptyVertices,
+}
+
 impl VPolytope {
-    pub fn new(vertices: Array2<f64>) -> Result<VPolytope, SetOperationError> {
+    pub fn new(vertices: Array2<f64>) -> Result<VPolytope, VPolytopeError> {
+        if vertices.is_empty() {
+            return Err(VPolytopeError::EmptyVertices);
+        }
         Ok(VPolytope { vertices })
+    }
+
+    pub fn n_vertices(&self) -> usize {
+        self.vertices.nrows()
     }
 }
 
@@ -39,7 +53,9 @@ impl GeoSet for VPolytope {
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
-        todo!()
+        // Centroid. Chebyshev center requires halfspaces
+        let center = self.vertices.mean_axis(Axis(0)).unwrap();
+        Ok(center)
     }
 
     fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {

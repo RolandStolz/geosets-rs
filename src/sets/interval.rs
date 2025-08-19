@@ -67,7 +67,8 @@ impl GeoSet for Interval {
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
-        todo!()
+        let center = (&self.lb + &self.ub) / 2.;
+        Ok(center)
     }
 
     fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {

@@ -50,7 +50,7 @@ impl GeoSet for Zonotope {
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
-        todo!()
+        Ok(self.c.clone())
     }
 
     fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {

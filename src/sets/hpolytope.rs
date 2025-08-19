@@ -1,7 +1,7 @@
 #![allow(unused)]
 use super::*;
 use crate::linalg_utils::rank;
-use good_lp::{default_solver, variable, variables, Expression, SolverModel};
+use good_lp::{default_solver, variable, variables, Expression, Solution, SolverModel};
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -28,6 +28,10 @@ impl HPolytope {
         } else {
             Ok(HPolytope { A, b })
         }
+    }
+
+    pub fn n_constraints(&self) -> usize {
+        self.A.nrows()
     }
 }
 
@@ -75,11 +79,44 @@ impl GeoSet for HPolytope {
     }
 
     fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
-        todo!()
+        !todo!()
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
-        todo!("Implement Chebychev center")
+        let mut vars = variables!();
+        let r = vars.add(variable().min(0.0)); // radius >= 0
+        let x: Vec<_> = (0..self.dim()).map(|_| vars.add(variable())).collect();
+
+        let mut problem = vars.maximise(r).using(default_solver);
+
+        for i in 0..self.n_constraints() {
+            let row = self.A.row(i);
+            let norm_ai = row.dot(&row).sqrt();
+
+            // let
+            let expr: Expression = row
+                .iter()
+                .zip(&x)
+                .map(|(&aij, &xj)| aij * xj)
+                .sum::<Expression>()
+                + norm_ai * r;
+
+            problem = problem.with(expr.leq(self.b[i]));
+        }
+
+        let solution = problem
+            .solve()
+            .map_err(|e| SetOperationError::InfeasibleOptimization {
+                source: Box::new(e),
+            })?;
+
+        let center =
+            Array1::from_shape_vec(self.dim(), x.iter().map(|&xi| solution.value(xi)).collect())
+                .map_err(|e| SetOperationError::InfeasibleOptimization {
+                    source: Box::new(e),
+                })?;
+
+        Ok(center)
     }
 
     fn support_function(&self) -> Result<(Array1<f64>, f64), SetOperationError> {
