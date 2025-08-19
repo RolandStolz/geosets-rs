@@ -181,6 +181,25 @@ impl GeoSet for HPolytope {
         self.b = &self.b + &self.A.dot(vector);
         Ok(())
     }
+
+    fn degenerate(&self) -> bool {
+        let c = match self.center() {
+            Ok(center) => center,
+            Err(SetOperationError::InfeasibleOptimization { .. }) => {
+                // Empty sets are degenerate
+                return true;
+            }
+            Err(_) => {
+                // Other errors: treat as degenerate (or propagate)
+                return true;
+            }
+        };
+
+        let residual = &self.b - &self.A.dot(&c);
+
+        // Check if any inequality is tight (≈ equality)
+        residual.iter().any(|&x| (x - 0.0).abs() <= 1e-9)
+    }
 }
 
 #[cfg(test)]

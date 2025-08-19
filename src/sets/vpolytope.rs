@@ -1,5 +1,6 @@
 #![allow(unused)]
 use crate::geometric_operations::convex_hull;
+use crate::linalg_utils::rank;
 
 use super::*;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
@@ -101,6 +102,14 @@ impl GeoSet for VPolytope {
         // Translate each vertex by the vector
         self.vertices = &self.vertices + &vector.view().insert_axis(Axis(0));
         Ok(())
+    }
+
+    fn degenerate(&self) -> bool {
+        if self.n_vertices() == 1 {
+            return true;
+        }
+        let mat = &self.vertices - self.vertices.mean_axis(Axis(0)).unwrap();
+        rank(&mat).unwrap() < self.dim()
     }
 }
 

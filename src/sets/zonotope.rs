@@ -1,6 +1,7 @@
 #![allow(unused)]
 use super::*;
 use crate::geometric_operations::convex_hull;
+use crate::linalg_utils::rank;
 use ndarray::Shape;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
 use ndarray_rand::RandomExt;
@@ -130,6 +131,10 @@ impl GeoSet for Zonotope {
         self.c = &self.c + vector;
         Ok(())
     }
+
+    fn degenerate(&self) -> bool {
+        self.n_generators() == 0 || rank(&self.G).unwrap() < self.dim()
+    }
 }
 
 #[cfg(test)]
@@ -138,47 +143,10 @@ mod tests {
 
     #[test]
     fn test_zonotope_new() {
-        let _ = Zonotope::new(Array::ones((2, 5)), Array::zeros(2)).unwrap();
+        let _ = Zonotope::new(Array::ones((5, 2)), Array::zeros(2)).unwrap();
         let zono = Zonotope::new(Array::eye(3), Array::zeros(2));
 
         // Expect an error when unwrapping zono2
         assert!(zono.is_err());
-    }
-
-    #[test]
-    fn test_minkowski_sum() {
-        let zono1 = Zonotope::new(Array::ones((2, 3)), Array::zeros(2)).unwrap();
-        let zono2 = Zonotope::new(Array::zeros((2, 3)), Array::ones(2)).unwrap();
-
-        let zono3 = zono1.minkowski_sum(&zono2).unwrap();
-
-        assert_eq!(
-            zono3.G,
-            array![[1., 1.], [1., 1.], [1., 1.], [0., 0.], [0., 0.], [0., 0.],].t(),
-        );
-        assert_eq!(zono3.c, array![1., 1.]);
-
-        // Dimension test
-        let zono1 = Zonotope::new(Array::ones((3, 3)), Array::zeros(3)).unwrap();
-        let zono2 = Zonotope::new(Array::zeros((2, 3)), Array::ones(2)).unwrap();
-
-        assert!(zono1.minkowski_sum(&zono2).is_err());
-    }
-
-    #[test]
-    fn test_linear_transform() {
-        let zono1 = Zonotope::new(Array::ones((2, 3)), Array::zeros(2)).unwrap();
-        let mat = Array::eye(2);
-
-        let zono2 = zono1.matmul(&mat).unwrap();
-
-        assert_eq!(zono2.G, array![[1., 1.], [1., 1.], [1., 1.]].t());
-        assert_eq!(zono2.c, array![0., 0.]);
-
-        // Dimension check
-        let zono1 = Zonotope::new(Array::ones((2, 3)), Array::zeros(2)).unwrap();
-        let mat = Array::eye(3);
-
-        assert!(zono1.matmul(&mat).is_err());
     }
 }

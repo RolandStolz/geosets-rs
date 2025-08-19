@@ -16,6 +16,7 @@ pub mod zonotope;
 pub trait GeoSet: Sized + Clone {
     fn dim(&self) -> usize;
     fn empty(&self) -> Result<bool, SetOperationError>;
+    fn degenerate(&self) -> bool;
 
     // Static function
     fn from_unit_box(dim: usize) -> Self;

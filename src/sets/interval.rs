@@ -116,4 +116,11 @@ impl GeoSet for Interval {
         self.ub += vector;
         Ok(())
     }
+
+    fn degenerate(&self) -> bool {
+        self.lb
+            .iter()
+            .zip(self.ub.iter())
+            .any(|(lb, ub)| (ub - lb).abs() < 1e-9)
+    }
 }
