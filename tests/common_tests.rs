@@ -10,8 +10,9 @@ macro_rules! test_all_geosets {
     ($test_name:ident, $test_body:block) => {
         #[rstest]
         #[case::hpolytope(std::marker::PhantomData::<geosets_rs::HPolytope>)]
-        #[case::zonotope(std::marker::PhantomData::<geosets_rs::VPolytope>)]
+        #[case::vpolytope(std::marker::PhantomData::<geosets_rs::VPolytope>)]
         #[case::zonotope(std::marker::PhantomData::<geosets_rs::Zonotope>)]
+        #[case::interval(std::marker::PhantomData::<geosets_rs::Interval>)]
         fn $test_name<T: GeoSet>(#[case] _marker: std::marker::PhantomData<T>) $test_body
     };
 }

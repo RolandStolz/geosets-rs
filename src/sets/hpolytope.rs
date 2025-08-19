@@ -1,7 +1,12 @@
 #![allow(unused)]
 use super::*;
+use crate::cddlib_rs::compute_polytope_vertices;
 use crate::linalg_utils::rank;
 use good_lp::{default_solver, variable, variables, Expression, Solution, SolverModel};
+use ndarray_linalg::Norm;
+use ndarray_rand::rand_distr::{Normal, StandardNormal, Uniform};
+use ndarray_rand::RandomExt;
+use plotly::box_plot;
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -30,6 +35,29 @@ impl HPolytope {
         }
     }
 
+    pub fn from_random(dim: usize, n_constraints: usize) -> Result<HPolytope, HPolytopeError> {
+        let box_poly = HPolytope::from_unit_box(dim);
+
+        let mut random_A = Array2::random((n_constraints, dim), StandardNormal);
+        // Normalize random_A
+        for mut row in random_A.rows_mut() {
+            let norm = row.norm_l2();
+            if norm > 0.0 {
+                row /= norm;
+            }
+        }
+
+        let interior_point = Array1::random(dim, Uniform::new(-0.8, 0.8));
+        let offsets = Array1::random(n_constraints, Uniform::new(0.1, 1.0));
+
+        let random_b = random_A.dot(&interior_point) + offsets;
+
+        let A = ndarray::concatenate(Axis(0), &[box_poly.A.view(), random_A.view()]).unwrap();
+        let b = ndarray::concatenate(Axis(0), &[box_poly.b.view(), random_b.view()]).unwrap();
+
+        Ok(HPolytope { A, b })
+    }
+
     pub fn n_constraints(&self) -> usize {
         self.A.nrows()
     }
@@ -43,7 +71,7 @@ impl GeoSet for HPolytope {
             &[Array2::eye(dim).view(), (-Array2::eye(dim)).view()],
         )
         .unwrap();
-        let b = Array1::zeros(dim * 2);
+        let b = Array1::ones(dim * 2);
         HPolytope::new(A, b).unwrap()
     }
 
@@ -79,7 +107,22 @@ impl GeoSet for HPolytope {
     }
 
     fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
-        !todo!()
+        let empty = self.empty()?;
+        if empty {
+            return Err(SetOperationError::EmptySet);
+        }
+
+        let mat = compute_polytope_vertices(&self.A, &self.b)?;
+
+        // let mat = Array2::from_shape_vec(
+        //     (vertices.len(), self.dim()),
+        //     vertices.into_iter().flatten().collect(),
+        // )
+        // .map_err(|e| SetOperationError::DataConversionError {
+        //     source: Box::new(e),
+        // })?;
+
+        Ok(mat)
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {

@@ -9,6 +9,10 @@ edition = "2021"
 good_lp = "1.14.0"
 ndarray = "0.16"
 ndarray-linalg = { version = "0.17", features = ["openblas"] }
+ndarray-rand = "0.15.0"
 plotly = "0.13.5"
 rstest = "0.26.1"
 thiserror = "2.0.15"
+
+[build-dependencies]
+bindgen = "0.72.0"
