@@ -48,7 +48,12 @@ pub trait GeoSet: Sized + Clone {
     // Generic implementations
     fn create_trace(&self, dim: (usize, usize)) -> Result<Box<dyn Trace>, SetOperationError> {
         use crate::geometric_operations::order_vertices_clockwise;
-        let vertices = order_vertices_clockwise(self.to_vertices()?);
+        let full_vertices = self.to_vertices()?;
+        let col_x = full_vertices.column(dim.0);
+        let col_y = full_vertices.column(dim.1);
+        let vertices_2d = ndarray::stack(Axis(1), &[col_x, col_y]).unwrap();
+
+        let vertices = order_vertices_clockwise(vertices_2d).unwrap();
 
         let closed_vertices = ndarray::concatenate(
             Axis(0),

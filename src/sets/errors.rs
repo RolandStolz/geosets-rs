@@ -9,15 +9,15 @@ pub enum SetOperationError {
     NotImplemented,
 
     #[error("Data conversion error: {source}")]
-    DataConversionError{
+    DataConversionError {
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Optimization failed: {source}")]
-    InfeasibleOptimization { 
-        #[source] 
-        source: Box<dyn std::error::Error + Send + Sync> 
+    InfeasibleOptimization {
+        #[source]
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Set is empty")]

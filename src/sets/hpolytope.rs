@@ -111,18 +111,7 @@ impl GeoSet for HPolytope {
         if empty {
             return Err(SetOperationError::EmptySet);
         }
-
-        let mat = compute_polytope_vertices(&self.A, &self.b)?;
-
-        // let mat = Array2::from_shape_vec(
-        //     (vertices.len(), self.dim()),
-        //     vertices.into_iter().flatten().collect(),
-        // )
-        // .map_err(|e| SetOperationError::DataConversionError {
-        //     source: Box::new(e),
-        // })?;
-
-        Ok(mat)
+        compute_polytope_vertices(&self.A, &self.b)
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {

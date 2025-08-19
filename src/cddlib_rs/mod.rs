@@ -1,9 +1,9 @@
 mod cdd_bindings;
 
+use crate::sets::errors::SetOperationError;
+use cdd_bindings::*;
 use ndarray::{Array1, Array2};
 use std::os::raw::c_long;
-use cdd_bindings::*;
-use crate::sets::errors::SetOperationError;
 
 pub fn compute_polytope_vertices(
     a: &Array2<f64>,
@@ -38,7 +38,7 @@ pub fn compute_polytope_vertices(
         for i in 0..m {
             let i_usize = i as usize;
             let i_isize = i as isize;
-            
+
             // RHS - get row pointer, then column pointer, then access the [f64; 1] array
             let row_ptr = (*mat).matrix.offset(i_isize);
             let rhs_ptr = (*row_ptr).offset(0);
@@ -83,7 +83,7 @@ pub fn compute_polytope_vertices(
             let gen_row_ptr = (*gens).matrix.offset(i_isize);
             let kind_ptr = (*gen_row_ptr).offset(0);
             let kind = (*kind_ptr)[0];
-            
+
             if (kind - 1.0).abs() < 1e-9 {
                 // It's a vertex
                 for j in 1..=n {
@@ -105,10 +105,11 @@ pub fn compute_polytope_vertices(
         if vertex_count == 0 {
             Ok(Array2::zeros((0, n as usize)))
         } else {
-            Array2::from_shape_vec((vertex_count, n as usize), vertices_data)
-                .map_err(|e| SetOperationError::DataConversionError {
+            Array2::from_shape_vec((vertex_count, n as usize), vertices_data).map_err(|e| {
+                SetOperationError::DataConversionError {
                     source: format!("Failed to create Array2 from vertices data: {}", e).into(),
-                })
+                }
+            })
         }
     }
 }

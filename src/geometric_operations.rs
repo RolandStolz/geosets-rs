@@ -1,10 +1,14 @@
 use ndarray::Array2;
 
-pub fn order_vertices_clockwise(vertices: Array2<f64>) -> Array2<f64> {
+pub fn order_vertices_clockwise(vertices: Array2<f64>) -> Result<Array2<f64>, Box<dyn std::error::Error>> {
     let n_vertices = vertices.nrows();
 
+    if vertices.dim().1 != 2 {
+        return Err("Vertices must be a 2D array with shape (n, 2)".into());
+    }
+
     if n_vertices < 3 {
-        return vertices;
+        return Ok(vertices);
     }
 
     // Calculate centroid
@@ -31,7 +35,7 @@ pub fn order_vertices_clockwise(vertices: Array2<f64>) -> Array2<f64> {
         ordered_vertices[[new_idx, 1]] = vertices[[*orig_idx, 1]];
     }
 
-    ordered_vertices
+    Ok(ordered_vertices)
 }
 
 #[cfg(test)]
@@ -49,7 +53,7 @@ mod tests {
             [0.0, 1.0]  // top-left
         ];
 
-        let ordered = order_vertices_clockwise(vertices);
+        let ordered = order_vertices_clockwise(vertices).unwrap();
 
         // Check that we have 4 vertices
         assert_eq!(ordered.nrows(), 4);
@@ -68,14 +72,14 @@ mod tests {
             [0.0, 0.0]  // bottom-left
         ];
 
-        let ordered = order_vertices_clockwise(vertices);
+        let ordered = order_vertices_clockwise(vertices).unwrap();
         assert_eq!(ordered.nrows(), 3);
     }
 
     #[test]
     fn test_insufficient_vertices() {
         let vertices = array![[0.0, 0.0], [1.0, 1.0]];
-        let ordered = order_vertices_clockwise(vertices.clone());
+        let ordered = order_vertices_clockwise(vertices.clone()).unwrap();
         assert_eq!(ordered, vertices);
     }
 }

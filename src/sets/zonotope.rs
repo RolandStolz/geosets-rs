@@ -1,5 +1,6 @@
 #![allow(unused)]
 use super::*;
+use ndarray::Shape;
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -27,6 +28,10 @@ impl Zonotope {
             Ok(Zonotope { G, c })
         }
     }
+
+    pub fn n_generators(&self) -> usize {
+        self.G.ncols()
+    }
 }
 
 #[allow(non_snake_case)]
@@ -46,7 +51,22 @@ impl GeoSet for Zonotope {
     }
 
     fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError> {
-        todo!()
+        let mut vertices = self.c.clone().into_shape_clone((1, self.dim())).unwrap();
+
+        for i in 0..self.n_generators() {
+            vertices = ndarray::concatenate(
+                Axis(0),
+                &[
+                    (&vertices + &self.G.row(i)).view(),
+                    (&vertices - &self.G.row(i)).view(),
+                ],
+            )
+            .unwrap();
+            
+            // TODO: The convex hull needs to be computed here
+        }
+
+        Ok(vertices)
     }
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {

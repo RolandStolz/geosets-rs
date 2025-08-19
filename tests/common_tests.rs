@@ -1,6 +1,8 @@
+use geosets_rs::order_vertices_clockwise;
 use geosets_rs::sets::GeoSet;
-use ndarray::Array1;
+use ndarray::{array, Array1, Array2};
 use rstest::rstest;
+use std::collections::HashSet;
 
 // This module contains common tests for the GeoSet trait.
 // These tests are implementation-agnostic and apply to any type implementing GeoSet.
@@ -15,6 +17,14 @@ macro_rules! test_all_geosets {
         #[case::interval(std::marker::PhantomData::<geosets_rs::Interval>)]
         fn $test_name<T: GeoSet>(#[case] _marker: std::marker::PhantomData<T>) $test_body
     };
+}
+
+// Used for testing
+fn to_set(vertices: &Array2<f64>) -> HashSet<Vec<u64>> {
+    vertices
+        .outer_iter()
+        .map(|row| row.iter().map(|&x| x.to_bits()).collect::<Vec<u64>>())
+        .collect::<HashSet<_>>()
 }
 
 // Generate test functions using the macro
@@ -79,4 +89,38 @@ test_all_geosets!(test_translate_common, {
             }
         }
     }
+});
+
+test_all_geosets!(test_to_vertices_common, {
+    // 2d
+    let set = T::from_unit_box(2);
+    let vertices = set.to_vertices().unwrap();
+
+    assert_eq!(vertices.dim().0, 4, "2D unit box should have 4 vertices");
+    assert_eq!(vertices.dim().1, 2, "2D vertices should have 2 coordinates");
+    let ordered_vertices = order_vertices_clockwise(vertices).unwrap();
+
+    assert_eq!(ordered_vertices.row(0), array![-1.0, 1.0]);
+    assert_eq!(ordered_vertices.row(1), array![1.0, 1.0]);
+    assert_eq!(ordered_vertices.row(2), array![1.0, -1.0]);
+    assert_eq!(ordered_vertices.row(3), array![-1.0, -1.0]);
+
+    // 3d
+    let set = T::from_unit_box(3);
+    let vertices = set.to_vertices().unwrap();
+    assert_eq!(vertices.dim().0, 8, "3D unit box should have 8 vertices");
+    assert_eq!(vertices.dim().1, 3, "3D vertices should have 3 coordinates");
+
+    let expected = array![
+        [1.0, -1.0, -1.0],
+        [1.0, -1.0, 1.0],
+        [1.0, 1.0, 1.0],
+        [1.0, 1.0, -1.0],
+        [-1.0, 1.0, 1.0],
+        [-1.0, 1.0, -1.0],
+        [-1.0, -1.0, 1.0],
+        [-1.0, -1.0, -1.0],
+    ];
+
+    assert_eq!(to_set(&vertices), to_set(&expected));
 });
