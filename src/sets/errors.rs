@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::geometric_operations::ConvexHullError;
+use crate::qhull_wrapper::ConvexHullError;
 
 #[derive(Error, Debug)]
 pub enum SetOperationError {
@@ -21,12 +21,6 @@ pub enum SetOperationError {
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
-
-    // #[error("Convex hull computation failed: {source}")]
-    // ConvexHullError {
-    //     #[source]
-    //     source: Box<dyn std::error::Error>,
-    // },
 
     #[error("ConvexHull error: {0}")]
     QhullError(#[from] ConvexHullError),

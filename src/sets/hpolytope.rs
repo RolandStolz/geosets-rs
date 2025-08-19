@@ -2,6 +2,7 @@
 use super::*;
 use crate::cddlib_rs::compute_polytope_vertices;
 use crate::linalg_utils::rank;
+use crate::VPolytope;
 use good_lp::{default_solver, variable, variables, Expression, Solution, SolverModel};
 use ndarray_linalg::Norm;
 use ndarray_rand::rand_distr::{Normal, StandardNormal, Uniform};
@@ -156,7 +157,8 @@ impl GeoSet for HPolytope {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
+        let vpoly = VPolytope::new(self.to_vertices()?).map_err(|_| SetOperationError::EmptySet)?;
+        vpoly.volume()
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {

@@ -1,6 +1,7 @@
 pub mod cddlib_rs;
 mod geometric_operations;
 mod linalg_utils;
+mod qhull_wrapper;
 pub mod sets;
 
 pub use sets::hpolytope::HPolytope;

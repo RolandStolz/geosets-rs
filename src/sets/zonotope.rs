@@ -1,8 +1,10 @@
 #![allow(unused)]
 use super::*;
-use crate::geometric_operations::convex_hull;
+use crate::qhull_wrapper::convex_hull_vertices;
 use crate::linalg_utils::rank;
+use itertools::Itertools;
 use ndarray::Shape;
+use ndarray_linalg::Determinant;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
 use ndarray_rand::RandomExt;
 use qhull::Qh;
@@ -95,7 +97,7 @@ impl GeoSet for Zonotope {
         }
 
         // Compute convex hull using qhull -> automatically propagates error
-        let hull_vertices = convex_hull(vertices)?;
+        let hull_vertices = convex_hull_vertices(&vertices)?;
         Ok(hull_vertices)
     }
 
@@ -108,7 +110,18 @@ impl GeoSet for Zonotope {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
+        if self.degenerate() {
+            return Ok(0.0);
+        }
+
+        let all_combinations = (0..self.n_generators()).combinations(self.dim());
+
+        let mut vol = 0.0;
+        for comb in all_combinations {
+            let submatrix = self.G.select(Axis(1), &comb);
+            vol += submatrix.det().unwrap().abs();
+        }
+        Ok(2.0_f64.powf(self.dim() as f64) * vol)
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {

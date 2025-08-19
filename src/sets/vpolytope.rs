@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::geometric_operations::convex_hull;
+use crate::qhull_wrapper::{convex_hull, convex_hull_vertices, qhull_volume};
 use crate::linalg_utils::rank;
 
 use super::*;
@@ -38,7 +38,7 @@ impl VPolytope {
     }
 
     pub fn compact_(&mut self) -> Result<(), SetOperationError> {
-        self.vertices = convex_hull(self.vertices.clone())?;
+        self.vertices = convex_hull_vertices(&self.vertices)?;
         Ok(())
     }
 
@@ -84,7 +84,14 @@ impl GeoSet for VPolytope {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
+        if self.degenerate() {
+            return Ok(0.0);
+        }
+
+        let vertices = self.to_vertices()?;
+        let qh = convex_hull(&vertices)?;
+
+        Ok(qhull_volume(&qh, &vertices)?)
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {

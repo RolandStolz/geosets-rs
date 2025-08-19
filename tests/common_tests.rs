@@ -125,10 +125,16 @@ test_all_geosets!(test_to_vertices_common, {
     assert_eq!(to_set(&vertices), to_set(&expected));
 });
 
-
 test_all_geosets!(test_degenerate_common, {
     for dim in 2..5 {
         let set = T::from_unit_box(dim);
         assert!(!set.degenerate());
+    }
+});
+
+test_all_geosets!(test_volume_common, {
+    for dim in 2..8 {
+        let set = T::from_unit_box(dim);
+        assert!(set.volume().unwrap() - 2f64.powi(dim as i32) < 1e-6);
     }
 });

@@ -85,7 +85,12 @@ impl GeoSet for Interval {
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
-        todo!()
+        if self.degenerate() {
+            return Ok(0.0);
+        }
+
+        let volume = self.lb.iter().zip(self.ub.iter()).map(|(lb, ub)| ub - lb).product();
+        Ok(volume)
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
