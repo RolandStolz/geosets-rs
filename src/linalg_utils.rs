@@ -1,4 +1,4 @@
-use ndarray::Array2;
+use ndarray::{Array1, Array2};
 use ndarray_linalg::SVD;
 
 pub fn rank(array: &Array2<f64>) -> Result<usize, Box<dyn std::error::Error>> {
@@ -9,4 +9,24 @@ pub fn rank(array: &Array2<f64>) -> Result<usize, Box<dyn std::error::Error>> {
     let rank = s.iter().filter(|&&value| value.abs() > tolerance).count();
 
     Ok(rank)
+}
+
+pub fn argmax(vector: &Array1<f64>) -> Option<usize> {
+    vector
+        .iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .map(|(i, _)| i)
+}
+
+pub fn sign(vector: &Array1<f64>) -> Array1<f64> {
+    vector.mapv(|x| {
+        if x > 0.0 {
+            1.0
+        } else if x < 0.0 {
+            -1.0
+        } else {
+            0.0
+        }
+    })
 }

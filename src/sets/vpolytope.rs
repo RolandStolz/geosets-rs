@@ -1,6 +1,6 @@
 #![allow(unused)]
 use crate::qhull_wrapper::{convex_hull, convex_hull_vertices, qhull_volume};
-use crate::linalg_utils::rank;
+use crate::linalg_utils::{argmax, rank};
 
 use super::*;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
@@ -80,7 +80,15 @@ impl GeoSet for VPolytope {
     }
 
     fn support_function(&self, direction: Array1<f64>) -> Result<(Array1<f64>, f64), SetOperationError> {
-        todo!()
+        self._check_operand_dim(direction.dim())?;
+
+        let dot_product = self.vertices.dot(&direction);
+        let max_index = argmax(&dot_product).unwrap();
+
+        let support_value = dot_product[max_index];
+        let support_vector = self.vertices.row(max_index).to_owned();
+
+        Ok((support_vector, support_value))
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {

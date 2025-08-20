@@ -81,20 +81,15 @@ impl GeoSet for HPolytope {
     }
 
     fn empty(&self) -> Result<bool, SetOperationError> {
-        let m = self.A.nrows();
-        let n = self.A.ncols();
-
         // Define variables x_0, ..., x_{n-1} (unbounded)
         let mut vars = variables!();
-        let x: Vec<_> = (0..n)
-            .map(|_| vars.add(variable().bounds(f64::NEG_INFINITY..f64::INFINITY)))
-            .collect();
+        let x: Vec<_> = (0..self.dim()).map(|_| vars.add(variable())).collect();
 
         // Build the problem with dummy objective
         let mut problem = vars.minimise(0.0).using(default_solver);
 
         // Add constraints row by row: A[i] ⋅ x <= b[i]
-        for i in 0..m {
+        for i in 0..self.n_constraints() {
             let row = self.A.row(i);
             let expr: Expression = row.iter().zip(&x).map(|(coef, xi)| *coef * *xi).sum();
             problem = problem.with(expr.leq(self.b[i]));
@@ -117,24 +112,17 @@ impl GeoSet for HPolytope {
 
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
         let mut vars = variables!();
-        let r = vars.add(variable().min(0.0)); // radius >= 0
+        let r = vars.add(variable().min(0.0));
         let x: Vec<_> = (0..self.dim()).map(|_| vars.add(variable())).collect();
 
+        // maximize radius
         let mut problem = vars.maximise(r).using(default_solver);
 
-        for i in 0..self.n_constraints() {
-            let row = self.A.row(i);
+        // constraints: a_i^T x + ||a_i|| * r <= b_i
+        for (i, row) in self.A.outer_iter().enumerate() {
             let norm_ai = row.dot(&row).sqrt();
-
-            // let
-            let expr: Expression = row
-                .iter()
-                .zip(&x)
-                .map(|(&aij, &xj)| aij * xj)
-                .sum::<Expression>()
-                + norm_ai * r;
-
-            problem = problem.with(expr.leq(self.b[i]));
+            let lhs: Expression = row.iter().zip(&x).map(|(&aij, &xj)| aij * xj).sum();
+            problem = problem.with((lhs + norm_ai * r).leq(self.b[i]));
         }
 
         let solution = problem
@@ -145,15 +133,49 @@ impl GeoSet for HPolytope {
 
         let center =
             Array1::from_shape_vec(self.dim(), x.iter().map(|&xi| solution.value(xi)).collect())
-                .map_err(|e| SetOperationError::InfeasibleOptimization {
+                .map_err(|e| SetOperationError::DataConversionError {
                     source: Box::new(e),
                 })?;
 
         Ok(center)
     }
 
-    fn support_function(&self, direction: Array1<f64>) -> Result<(Array1<f64>, f64), SetOperationError> {
-        todo!()
+    fn support_function(
+        &self,
+        direction: Array1<f64>,
+    ) -> Result<(Array1<f64>, f64), SetOperationError> {
+        self._check_operand_dim(direction.dim())?;
+
+        // Define variables for the support vector x_0, ..., x_{n-1} (unbounded)
+        let mut vars = variables!();
+        let x: Vec<_> = (0..self.dim()).map(|_| vars.add(variable())).collect();
+
+        // Dot product objective
+        let objective: Expression = direction.iter().zip(&x).map(|(d_i, x_i)| *d_i * *x_i).sum();
+        let mut problem = vars.maximise(objective.clone()).using(default_solver);
+
+        // Add constraints row by row: A[i] ⋅ x <= b[i]
+        for i in 0..self.n_constraints() {
+            let row = self.A.row(i);
+            let expr: Expression = row.iter().zip(&x).map(|(coef, xi)| *coef * *xi).sum();
+            problem = problem.with(expr.leq(self.b[i]));
+        }
+
+        let solution = problem
+            .solve()
+            .map_err(|e| SetOperationError::InfeasibleOptimization {
+                source: Box::new(e),
+            })?;
+
+        let support_vector =
+            Array1::from_shape_vec(self.dim(), x.iter().map(|&xi| solution.value(xi)).collect())
+                .map_err(|e| SetOperationError::DataConversionError {
+                    source: Box::new(e),
+                })?;
+
+        let support_value = solution.eval(&objective);
+
+        Ok((support_vector, support_value))
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {

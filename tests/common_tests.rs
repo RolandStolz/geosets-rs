@@ -143,11 +143,15 @@ test_all_geosets!(test_support_function_common, {
     let set = T::from_unit_box(2);
 
     let (support_vector, support_value) = set.support_function(array![1.0, 0.0]).unwrap();
-    assert_eq!(support_vector, array![1.0, 0.0]);
+    assert_eq!(support_vector[0], 1.0);
+    // y-coordinate is not unique
+    assert!((-1.0..=1.0).contains(&support_vector[1]));
     assert_eq!(support_value, 1.0);
 
     let (support_vector, support_value) = set.support_function(array![0.0, 1.0]).unwrap();
-    assert_eq!(support_vector, array![0.0, 1.0]);
+    // x-coordinate is not unique
+    assert!((-1.0..=1.0).contains(&support_vector[0]));
+    assert_eq!(support_vector[1], 1.0);
     assert_eq!(support_value, 1.0);
 
     let (support_vector, support_value) = set.support_function(array![1.0, 1.0]).unwrap();

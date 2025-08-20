@@ -1,6 +1,6 @@
 #![allow(unused)]
 use super::*;
-use crate::linalg_utils::rank;
+use crate::linalg_utils::{rank, sign};
 use crate::qhull_wrapper::convex_hull_vertices;
 use itertools::Itertools;
 use ndarray::Shape;
@@ -113,15 +113,7 @@ impl GeoSet for Zonotope {
 
         let projection = self.G.dot(&direction);
         // signum is not correct here!
-        let projection_sign = projection.mapv(|x| {
-            if x > 0.0 {
-                1.0
-            } else if x < 0.0 {
-                -1.0
-            } else {
-                0.0
-            }
-        });
+        let projection_sign = sign(&projection);
 
         let support_value = direction.dot(&self.c) + projection.abs().sum();
         let support_vector = &self.c + projection_sign.dot(&self.G);

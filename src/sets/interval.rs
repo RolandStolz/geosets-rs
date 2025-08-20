@@ -80,8 +80,21 @@ impl GeoSet for Interval {
         Ok(center)
     }
 
-    fn support_function(&self, direction: Array1<f64>) -> Result<(Array1<f64>, f64), SetOperationError> {
-        todo!()
+    fn support_function(
+        &self,
+        direction: Array1<f64>,
+    ) -> Result<(Array1<f64>, f64), SetOperationError> {
+        // For each dimension, pick ub if direction > 0, else lb
+        let support_vector = self
+            .lb
+            .iter()
+            .zip(self.ub.iter())
+            .zip(direction.iter())
+            .map(|((&lb, &ub), &d)| if d > 0.0 { ub } else { lb })
+            .collect::<Array1<f64>>();
+
+        let support_value = support_vector.dot(&direction);
+        Ok((support_vector, support_value))
     }
 
     fn volume(&self) -> Result<f64, SetOperationError> {
@@ -89,7 +102,12 @@ impl GeoSet for Interval {
             return Ok(0.0);
         }
 
-        let volume = self.lb.iter().zip(self.ub.iter()).map(|(lb, ub)| ub - lb).product();
+        let volume = self
+            .lb
+            .iter()
+            .zip(self.ub.iter())
+            .map(|(lb, ub)| ub - lb)
+            .product();
         Ok(volume)
     }
 
