@@ -207,3 +207,9 @@ test_all_geosets!(test_minkowski_sum_common, {
     // assert_eq!(sum_3d.volume().unwrap(), 64.0);
     assert!((sum_3d.volume().unwrap() - 64.0).abs() < 1e-6);
 });
+
+test_all_geosets!(test_plot_common, {
+    let set = T::from_unit_box(2);
+    let _trace = set.create_trace((0, 1), None).unwrap();
+    let _plot = set.plot((0, 1), true, false).unwrap();
+});

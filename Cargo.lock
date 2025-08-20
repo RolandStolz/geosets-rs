@@ -547,6 +547,7 @@ dependencies = [
  "ndarray",
  "ndarray-linalg",
  "ndarray-rand",
+ "once_cell",
  "plotly",
  "qhull",
  "rstest",
