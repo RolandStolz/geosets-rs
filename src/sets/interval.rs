@@ -30,10 +30,10 @@ impl Interval {
         }
 
         if lb.iter().zip(ub.iter()).any(|(a, b)| a > b) {
-            return Err(IntervalError::InvalidBounds { lb: lb, ub: ub });
+            return Err(IntervalError::InvalidBounds { lb, ub });
         }
 
-        Ok(Interval { lb: lb, ub: ub })
+        Ok(Interval { lb, ub })
     }
 
     pub fn from_random(dim: usize) -> Result<Interval, IntervalError> {

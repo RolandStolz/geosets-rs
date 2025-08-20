@@ -1,5 +1,5 @@
 use geosets_rs::sets::GeoSet;
-use geosets_rs::{HPolytope, Interval, VPolytope, Zonotope};
+use geosets_rs::VPolytope;
 use ndarray::Array2;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

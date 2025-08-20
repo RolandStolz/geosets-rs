@@ -74,13 +74,11 @@ pub fn convex_hull_vertices(vertices: &Array2<f64>) -> Result<Array2<f64>, Conve
     let dim = hull_vertices[0].len();
     let flattened: Vec<f64> = hull_vertices.into_iter().flatten().collect();
 
-    Ok(
-        Array2::from_shape_vec((n_vertices, dim), flattened).map_err(|e| {
-            ConvexHullError::DataConversionError {
-                source: Box::new(e),
-            }
-        })?,
-    )
+    Array2::from_shape_vec((n_vertices, dim), flattened).map_err(|e| {
+        ConvexHullError::DataConversionError {
+            source: Box::new(e),
+        }
+    })
 }
 
 /// Compute the volume of an n-dimensional simplex
@@ -117,7 +115,7 @@ pub fn qhull_volume(qh: &Qh, vertices: &Array2<f64>) -> Result<f64, ConvexHullEr
     let centroid = vertices.mean_axis(Axis(0)).unwrap();
     let mut total_volume = 0.0;
 
-    for (_simplex_idx, simplex) in qh.simplices().enumerate() {
+    for simplex in qh.simplices() {
         let vertex_set =
             simplex
                 .vertices()
@@ -127,7 +125,7 @@ pub fn qhull_volume(qh: &Qh, vertices: &Array2<f64>) -> Result<f64, ConvexHullEr
 
         let simplex_vertices: Vec<Array1<f64>> = vertex_set
             .iter()
-            .filter_map(|vertex| vertex.index(&qh).map(|idx| vertices.row(idx).to_owned()))
+            .filter_map(|vertex| vertex.index(qh).map(|idx| vertices.row(idx).to_owned()))
             .collect();
 
         // Create pyramid with centroid as apex and simplex as base
