@@ -85,4 +85,4 @@ jobs:
           coinor-libcbc-dev
 
     - name: Publish to crates.io
-      run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
+      run: cargo publish --no-verify --token ${{ secrets.CRATES_TOKEN }}
