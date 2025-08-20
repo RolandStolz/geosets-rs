@@ -26,6 +26,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     plot.add_trace(interval_trace);
     plot.add_trace(vpoly_trace);
 
+    println!("H-Polytope volume: {}", hpoly.volume()?);
+    println!("Zonotope volume: {}", zono.volume()?);
+    println!("Interval volume: {}", interval.volume()?);
+    println!("V-Polytope volume: {}", vpoly.volume()?);
+
     plot.show();
     Ok(())
 }

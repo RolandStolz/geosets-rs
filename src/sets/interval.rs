@@ -112,7 +112,9 @@ impl GeoSet for Interval {
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
-        todo!()
+        self.lb += &other.lb;
+        self.ub += &other.ub;
+        Ok(())
     }
 
     fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {

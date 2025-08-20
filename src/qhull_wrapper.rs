@@ -23,7 +23,7 @@ pub enum ConvexHullError {
     InsufficientPoints,
 }
 
-pub fn convex_hull(vertices: &Array2<f64>) -> Result<Qh<'static>, ConvexHullError> {
+pub fn convex_hull(vertices: &Array2<f64>, triangulate: bool) -> Result<Qh<'static>, ConvexHullError> {
     if vertices.nrows() <= vertices.dim().1 {
         // Not enough points for a proper convex hull in this dimension
         return Err(ConvexHullError::InsufficientPoints);
@@ -35,9 +35,11 @@ pub fn convex_hull(vertices: &Array2<f64>) -> Result<Qh<'static>, ConvexHullErro
         .map(|row| row.to_vec())
         .collect();
 
-    // Compute convex hull
+    // Compute convex hull with triangulation enabled
     Qh::builder()
         .compute(true)
+        .triangulate(triangulate)
+        // .triangulate(true)  // Enable triangulation to get simplices
         .build_from_iter(points)
         .map_err(|e| ConvexHullError::QhullError {
             source: Box::new(e),
@@ -45,7 +47,7 @@ pub fn convex_hull(vertices: &Array2<f64>) -> Result<Qh<'static>, ConvexHullErro
 }
 
 pub fn convex_hull_vertices(vertices: &Array2<f64>) -> Result<Array2<f64>, ConvexHullError> {
-    let qh = convex_hull(vertices)
+    let qh = convex_hull(vertices, false)
         .map_err(|e| ConvexHullError::QhullError {
             source: Box::new(e),
         })
@@ -110,13 +112,9 @@ pub fn qhull_volume(qh: &Qh, vertices: &Array2<f64>) -> Result<f64, ConvexHullEr
 
     // Compute centroid of all vertices
     let centroid = vertices.mean_axis(Axis(0)).unwrap();
-
     let mut total_volume = 0.0;
 
     for (_simplex_idx, simplex) in qh.simplices().enumerate() {
-        // let vertex_set = simplex.vertices().ok_or_else(|| {
-        //     ConvexHullError::DataConversionError {source: Box::new(e)}
-        // })?;
         let vertex_set = simplex
             .vertices()
             .ok_or_else(|| ConvexHullError::DataConversionError {
@@ -137,6 +135,7 @@ pub fn qhull_volume(qh: &Qh, vertices: &Array2<f64>) -> Result<f64, ConvexHullEr
         pyramid_vertices.extend(simplex_vertices);
 
         let simplex_contribution = simplex_volume(&pyramid_vertices);
+        // println!("Simplex contribution: {}", simplex_contribution);
         total_volume += simplex_contribution;
     }
 

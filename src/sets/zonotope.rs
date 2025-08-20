@@ -130,7 +130,7 @@ impl GeoSet for Zonotope {
 
         let mut vol = 0.0;
         for comb in all_combinations {
-            let submatrix = self.G.select(Axis(1), &comb);
+            let submatrix = self.G.select(Axis(0), &comb);
             vol += submatrix.det().unwrap().abs();
         }
         Ok(2.0_f64.powf(self.dim() as f64) * vol)

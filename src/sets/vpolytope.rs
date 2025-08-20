@@ -1,6 +1,6 @@
 #![allow(unused)]
-use crate::qhull_wrapper::{convex_hull, convex_hull_vertices, qhull_volume};
 use crate::linalg_utils::{argmax, rank};
+use crate::qhull_wrapper::{convex_hull, convex_hull_vertices, qhull_volume};
 
 use super::*;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
@@ -79,7 +79,10 @@ impl GeoSet for VPolytope {
         Ok(center)
     }
 
-    fn support_function(&self, direction: Array1<f64>) -> Result<(Array1<f64>, f64), SetOperationError> {
+    fn support_function(
+        &self,
+        direction: Array1<f64>,
+    ) -> Result<(Array1<f64>, f64), SetOperationError> {
         self._check_operand_dim(direction.dim())?;
 
         let dot_product = self.vertices.dot(&direction);
@@ -97,18 +100,29 @@ impl GeoSet for VPolytope {
         }
 
         let vertices = self.to_vertices()?;
-        let qh = convex_hull(&vertices)?;
+        let qh = convex_hull(&vertices, true)?;
 
         Ok(qhull_volume(&qh, &vertices)?)
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
-        todo!()
+        let mut vertices = Array2::zeros((self.n_vertices() * other.n_vertices(), self.dim()));
+
+        for (i, row_self) in self.vertices.outer_iter().enumerate() {
+            for (j, row_other) in other.vertices.outer_iter().enumerate() {
+                vertices
+                    .row_mut(i * other.n_vertices() + j)
+                    .assign(&(&row_self + &row_other));
+            }
+        }
+
+        self.vertices = convex_hull_vertices(&vertices)?;
+        Ok(())
     }
 
     fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
-        self._check_operand_dim(mat.dim().0);
-        self.vertices = mat.dot(&self.vertices);
+        self._check_operand_dim(mat.dim().0)?;
+        self.vertices = self.vertices.dot(&mat.t());
         Ok(())
     }
 

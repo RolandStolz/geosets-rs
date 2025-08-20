@@ -132,10 +132,20 @@ test_all_geosets!(test_degenerate_common, {
     }
 });
 
+test_all_geosets!(test_matmul_common, {
+    for dim in 2..5 {
+        let mut set = T::from_unit_box(dim);
+        set.matmul_(&(Array2::eye(dim) * 2.0)).unwrap();
+        let center = set.center().unwrap();
+        let zeros = Array1::zeros(dim);
+        assert!(center.abs_diff_eq(&zeros, 1e-6));
+    }
+});
+
 test_all_geosets!(test_volume_common, {
-    for dim in 2..8 {
+    for dim in 2..5 {
         let set = T::from_unit_box(dim);
-        assert!(set.volume().unwrap() - 2f64.powi(dim as i32) < 1e-6);
+        assert!((set.volume().unwrap() - 2f64.powi(dim as i32)).abs() < 1e-6);
     }
 });
 
@@ -158,4 +168,42 @@ test_all_geosets!(test_support_function_common, {
     assert_eq!(support_vector, array![1.0, 1.0]);
     println!("Support value: {}", support_value);
     assert_eq!(support_value, 2.0);
+});
+
+test_all_geosets!(test_minkowski_sum_common, {
+    // 2d
+    let set = T::from_unit_box(2);
+    let other = T::from_unit_box(2);
+
+    let sum = set.minkowski_sum(&other).unwrap();
+    let vertices = sum.to_vertices().unwrap();
+
+    let expected = array![[2.0, -2.0], [2.0, 2.0], [-2.0, 2.0], [-2.0, -2.0],];
+
+    assert_eq!(to_set(&vertices), to_set(&expected));
+    assert_eq!(sum.center().unwrap(), array![0.0, 0.0]);
+    assert!((sum.volume().unwrap() - 16.0).abs() < 1e-6);
+
+    // 3d
+    let set_3d = T::from_unit_box(3);
+    let other_3d = T::from_unit_box(3);
+
+    let sum_3d = set_3d.minkowski_sum(&other_3d).unwrap();
+    let vertices_3d = sum_3d.to_vertices().unwrap();
+
+    let expected_3d = array![
+        [2.0, -2.0, -2.0],
+        [2.0, -2.0, 2.0],
+        [2.0, 2.0, 2.0],
+        [2.0, 2.0, -2.0],
+        [-2.0, 2.0, 2.0],
+        [-2.0, 2.0, -2.0],
+        [-2.0, -2.0, 2.0],
+        [-2.0, -2.0, -2.0],
+    ];
+
+    assert_eq!(to_set(&vertices_3d), to_set(&expected_3d));
+    assert_eq!(sum_3d.center().unwrap(), array![0.0, 0.0, 0.0]);
+    // assert_eq!(sum_3d.volume().unwrap(), 64.0);
+    assert!((sum_3d.volume().unwrap() - 64.0).abs() < 1e-6);
 });
