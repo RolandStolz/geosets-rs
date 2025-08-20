@@ -1,7 +1,7 @@
 # geosets-rs
 
 [![CI](https://github.com/STZRoland/geosets-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/STZRoland/geosets-rs/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/STZRoland/geosets-rs/badge.svg?branch=main)](https://coveralls.io/github/STZRoland/geosets-rs?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/RolandStolz/geosets-rs/badge.svg?branch=main)](https://coveralls.io/github/RolandStolz/geosets-rs?branch=main)
 [![Crates.io](https://img.shields.io/crates/v/geosets-rs)](https://crates.io/crates/geosets-rs)
 [![docs.rs](https://docs.rs/geosets-rs/badge.svg)](https://docs.rs/geosets-rs)
 [![License](https://img.shields.io/crates/l/geosets-rs)](LICENSE)

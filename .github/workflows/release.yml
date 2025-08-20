@@ -80,7 +80,7 @@ jobs:
           liblapack-dev \
           pkg-config \
           clang \
-          libclang-dev
+          libclang-dev \
           coinor-cbc \
           coinor-libcbc-dev
 
