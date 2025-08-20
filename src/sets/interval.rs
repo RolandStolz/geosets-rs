@@ -1,7 +1,7 @@
 #![allow(unused)]
 use super::*;
-use ndarray_rand::rand_distr::{Exp1, Uniform};
 use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
 use thiserror::Error;
 
 #[derive(Clone, Debug)]

@@ -1,6 +1,6 @@
 use geosets_rs::order_vertices_clockwise;
 use geosets_rs::sets::GeoSet;
-use ndarray::{array, Array1, Array2};
+use ndarray::{Array1, Array2, array};
 use rstest::rstest;
 use std::collections::HashSet;
 

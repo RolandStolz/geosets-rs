@@ -1,8 +1,8 @@
 use ndarray::concatenate;
 use ndarray::prelude::*;
-use plotly::common::Mode;
 use plotly::Layout;
 use plotly::Trace;
+use plotly::common::Mode;
 use plotly::{Plot, Scatter};
 
 use self::errors::SetOperationError;

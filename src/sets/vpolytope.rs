@@ -3,8 +3,8 @@ use crate::linalg_utils::{argmax, rank};
 use crate::qhull_wrapper::{convex_hull, convex_hull_vertices, qhull_volume};
 
 use super::*;
-use ndarray_rand::rand_distr::{Exp1, Uniform};
 use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
 use plotly::common::Mode;
 use plotly::{Plot, Scatter};
 use thiserror::Error;
@@ -60,11 +60,7 @@ impl GeoSet for VPolytope {
 
     fn from_unit_box(dim: usize) -> Self {
         let vertices = Array2::from_shape_fn((1 << dim, dim), |(i, j)| {
-            if (i & (1 << j)) != 0 {
-                1.0
-            } else {
-                -1.0
-            }
+            if (i & (1 << j)) != 0 { 1.0 } else { -1.0 }
         });
         VPolytope::new(vertices).unwrap()
     }

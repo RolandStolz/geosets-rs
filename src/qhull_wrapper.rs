@@ -158,12 +158,7 @@ mod tests {
     #[test]
     fn test_convex_hull_vertices_square() {
         // A unit square in 2D
-        let points = array![
-            [0.0, 0.0],
-            [1.0, 0.0],
-            [1.0, 1.0],
-            [0.0, 1.0]
-        ];
+        let points = array![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]];
         let result = convex_hull_vertices(&points).unwrap();
 
         // Should return 4 vertices (the square corners)
@@ -202,12 +197,7 @@ mod tests {
     #[test]
     fn test_qhull_volume_square() {
         // A unit square in 2D should have "area" = 1.0
-        let points = array![
-            [0.0, 0.0],
-            [1.0, 0.0],
-            [1.0, 1.0],
-            [0.0, 1.0]
-        ];
+        let points = array![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]];
         let qh = convex_hull(&points, true).unwrap();
         let volume = qhull_volume(&qh, &points).unwrap();
 

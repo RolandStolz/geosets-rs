@@ -5,8 +5,8 @@ use crate::qhull_wrapper::convex_hull_vertices;
 use itertools::Itertools;
 use ndarray::Shape;
 use ndarray_linalg::Determinant;
-use ndarray_rand::rand_distr::{Exp1, Uniform};
 use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
 use qhull::Qh;
 use thiserror::Error;
 

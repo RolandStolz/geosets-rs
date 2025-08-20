@@ -16,11 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        rust: [stable, beta]
-        exclude:
-          # Skip beta on macOS to reduce CI time
-          - os: macos-latest
-            rust: beta
+        rust: [stable]
 
     steps:
     - uses: actions/checkout@v4
@@ -50,7 +46,6 @@ jobs:
           libcdd-dev \
           libopenblas-dev \
           liblapack-dev \
-          gfortran \
           pkg-config \
           clang \
           libclang-dev
@@ -172,10 +167,7 @@ jobs:
     - name: Build documentation
       run: cargo doc --no-deps --all-features
 
-    - name: Deploy documentation to GitHub Pages
+    - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./target/doc
-        force_orphan: true
+      id: deployment
+      uses: actions/deploy-pages@v4

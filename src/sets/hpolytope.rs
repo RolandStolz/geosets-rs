@@ -1,12 +1,12 @@
 #![allow(unused)]
 use super::*;
+use crate::VPolytope;
 use crate::cddlib_rs::compute_polytope_vertices;
 use crate::linalg_utils::rank;
-use crate::VPolytope;
-use good_lp::{default_solver, variable, variables, Expression, Solution, SolverModel};
+use good_lp::{Expression, Solution, SolverModel, default_solver, variable, variables};
 use ndarray_linalg::Norm;
-use ndarray_rand::rand_distr::{Normal, StandardNormal, Uniform};
 use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::{Normal, StandardNormal, Uniform};
 use plotly::box_plot;
 use thiserror::Error;
 
