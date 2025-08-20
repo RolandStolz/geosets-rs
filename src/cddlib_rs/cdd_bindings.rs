@@ -1214,7 +1214,7 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn dd_LPSolve(arg1: dd_LPPtr, arg2: dd_LPSolverType, arg3: *mut dd_ErrorType)
-        -> dd_boolean;
+    -> dd_boolean;
 }
 unsafe extern "C" {
     pub fn dd_LPSolve0(

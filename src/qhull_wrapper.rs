@@ -141,3 +141,95 @@ pub fn qhull_volume(qh: &Qh, vertices: &Array2<f64>) -> Result<f64, ConvexHullEr
 
     Ok(total_volume)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::array;
+
+    #[test]
+    fn test_convex_hull_insufficient_points() {
+        // 2D requires at least 3 points
+        let points = array![[0.0, 0.0], [1.0, 1.0]];
+        let result = convex_hull(&points, false);
+        assert!(matches!(result, Err(ConvexHullError::InsufficientPoints)));
+    }
+
+    #[test]
+    fn test_convex_hull_vertices_square() {
+        // A unit square in 2D
+        let points = array![
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 1.0],
+            [0.0, 1.0]
+        ];
+        let result = convex_hull_vertices(&points).unwrap();
+
+        // Should return 4 vertices (the square corners)
+        assert_eq!(result.nrows(), 4);
+        assert_eq!(result.ncols(), 2);
+    }
+
+    #[test]
+    fn test_simplex_volume_triangle_area() {
+        // Triangle in 2D: (0,0), (1,0), (0,1)
+        let v1 = array![0.0, 0.0];
+        let v2 = array![1.0, 0.0];
+        let v3 = array![0.0, 1.0];
+        let vertices = vec![v1, v2, v3];
+
+        let area = simplex_volume(&vertices);
+        // Area of right triangle = 0.5
+        assert!((area - 0.5).abs() < 1e-8);
+    }
+
+    #[test]
+    fn test_simplex_volume_tetrahedron() {
+        // Regular tetrahedron with side length sqrt(2)
+        // Vertices: (0,0,0), (1,0,0), (0,1,0), (0,0,1)
+        let v1 = array![0.0, 0.0, 0.0];
+        let v2 = array![1.0, 0.0, 0.0];
+        let v3 = array![0.0, 1.0, 0.0];
+        let v4 = array![0.0, 0.0, 1.0];
+        let vertices = vec![v1, v2, v3, v4];
+
+        let volume = simplex_volume(&vertices);
+        // Volume of this tetrahedron = 1/6
+        assert!((volume - (1.0 / 6.0)).abs() < 1e-8);
+    }
+
+    #[test]
+    fn test_qhull_volume_square() {
+        // A unit square in 2D should have "area" = 1.0
+        let points = array![
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 1.0],
+            [0.0, 1.0]
+        ];
+        let qh = convex_hull(&points, true).unwrap();
+        let volume = qhull_volume(&qh, &points).unwrap();
+
+        assert!((volume - 1.0).abs() < 1e-8);
+    }
+
+    #[test]
+    fn test_qhull_volume_cube() {
+        // A unit cube in 3D should have volume = 1.0
+        let points = array![
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 0.0],
+            [1.0, 0.0, 1.0],
+            [0.0, 1.0, 1.0],
+            [1.0, 1.0, 1.0]
+        ];
+        let qh = convex_hull(&points, true).unwrap();
+        let volume = qhull_volume(&qh, &points).unwrap();
+
+        assert!((volume - 1.0).abs() < 1e-8);
+    }
+}
