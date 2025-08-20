@@ -80,6 +80,9 @@ impl GeoSet for HPolytope {
         self.A.dim().1
     }
 
+    /// Solves the optimization problem: \
+    /// $\min 0$ \
+    /// $\text{subject to } A^\top x \leq b$ \
     fn empty(&self) -> Result<bool, SetOperationError> {
         // Define variables x_0, ..., x_{n-1} (unbounded)
         let mut vars = variables!();
@@ -110,6 +113,9 @@ impl GeoSet for HPolytope {
         compute_polytope_vertices(&self.A, &self.b)
     }
 
+    /// Solves the optimization problem: \
+    /// $\max c^\top x $ \
+    /// $\text{subject to } A^\top x \leq b$ \
     fn center(&self) -> Result<Array1<f64>, SetOperationError> {
         let mut vars = variables!();
         let r = vars.add(variable().min(0.0));
@@ -140,6 +146,9 @@ impl GeoSet for HPolytope {
         Ok(center)
     }
 
+    /// Solves the optimization problem: \
+    /// $\max d^\top x $ \
+    /// $\text{subject to } A^\top x \leq b$ \
     fn support_function(
         &self,
         direction: Array1<f64>,
@@ -184,7 +193,39 @@ impl GeoSet for HPolytope {
     }
 
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError> {
-        todo!()
+        // Implementation based on the support functions of both
+        let dim = self.dim();
+
+        // Collect candidate directions: normals from both polytopes
+        let directions = ndarray::concatenate![Axis(0), self.A.view(), other.A.view()];
+
+        // Prepare storage for new A and b
+        let n_dirs = directions.nrows();
+        let mut new_A = Array2::<f64>::zeros((n_dirs, dim));
+        let mut new_b = Array1::<f64>::zeros(n_dirs);
+
+        for (i, dir) in directions.outer_iter().enumerate() {
+            // Normalize direction to avoid scaling issues
+            let norm = dir.norm_l2();
+            if norm < 1e-9 {
+                continue;
+            }
+            let u = &dir / norm;
+
+            // Compute support values
+            let (_, h1) = self.support_function(u.clone())?;
+            let (_, h2) = other.support_function(u.clone())?;
+
+            // Fill row in A and entry in b
+            new_A.row_mut(i).assign(&u);
+            new_b[i] = h1 + h2;
+        }
+
+        // Replace self with new H-representation
+        self.A = new_A;
+        self.b = new_b;
+
+        Ok(())
     }
 
     fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {

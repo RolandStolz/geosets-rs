@@ -23,7 +23,10 @@ pub trait GeoSet: Sized + Clone {
 
     fn to_vertices(&self) -> Result<Array2<f64>, SetOperationError>;
     fn center(&self) -> Result<Array1<f64>, SetOperationError>;
-    fn support_function(&self, direction: Array1<f64>) -> Result<(Array1<f64>, f64), SetOperationError>;
+    fn support_function(
+        &self,
+        direction: Array1<f64>,
+    ) -> Result<(Array1<f64>, f64), SetOperationError>;
     fn volume(&self) -> Result<f64, SetOperationError>;
 
     // Operations
@@ -72,7 +75,8 @@ pub trait GeoSet: Sized + Clone {
 
         let mut trace = Scatter::new(x, y)
             .mode(Mode::LinesMarkers)
-            .fill(plotly::common::Fill::ToSelf).opacity(0.8);
+            .fill(plotly::common::Fill::ToSelf)
+            .opacity(0.8);
 
         if let Some(trace_name) = name {
             trace = trace.name(trace_name);

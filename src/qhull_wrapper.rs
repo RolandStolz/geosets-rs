@@ -23,7 +23,10 @@ pub enum ConvexHullError {
     InsufficientPoints,
 }
 
-pub fn convex_hull(vertices: &Array2<f64>, triangulate: bool) -> Result<Qh<'static>, ConvexHullError> {
+pub fn convex_hull(
+    vertices: &Array2<f64>,
+    triangulate: bool,
+) -> Result<Qh<'static>, ConvexHullError> {
     if vertices.nrows() <= vertices.dim().1 {
         // Not enough points for a proper convex hull in this dimension
         return Err(ConvexHullError::InsufficientPoints);
@@ -115,19 +118,16 @@ pub fn qhull_volume(qh: &Qh, vertices: &Array2<f64>) -> Result<f64, ConvexHullEr
     let mut total_volume = 0.0;
 
     for (_simplex_idx, simplex) in qh.simplices().enumerate() {
-        let vertex_set = simplex
-            .vertices()
-            .ok_or_else(|| ConvexHullError::DataConversionError {
-                source: "Failed to get facet vertices".into(),
-            })?;
+        let vertex_set =
+            simplex
+                .vertices()
+                .ok_or_else(|| ConvexHullError::DataConversionError {
+                    source: "Failed to get facet vertices".into(),
+                })?;
 
         let simplex_vertices: Vec<Array1<f64>> = vertex_set
             .iter()
-            .filter_map(|vertex| {
-                vertex
-                    .index(&qh)
-                    .map(|idx| vertices.row(idx).to_owned())
-            })
+            .filter_map(|vertex| vertex.index(&qh).map(|idx| vertices.row(idx).to_owned()))
             .collect();
 
         // Create pyramid with centroid as apex and simplex as base
