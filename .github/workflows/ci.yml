@@ -48,13 +48,15 @@ jobs:
           liblapack-dev \
           pkg-config \
           clang \
-          libclang-dev
+          libclang-dev \
+          coinor-cbc \
+          coinor-libcbc-dev
 
     - name: Install system dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         brew update
-        brew install cddlib openblas lapack
+        brew install cddlib openblas lapack cbc
 
     - name: Check formatting
       run: cargo fmt --all -- --check
@@ -109,7 +111,9 @@ jobs:
           gfortran \
           pkg-config \
           clang \
-          libclang-dev
+          libclang-dev \
+          coinor-cbc \
+          coinor-libcbc-dev
 
     - name: Generate code coverage
       run: |
@@ -162,7 +166,9 @@ jobs:
           gfortran \
           pkg-config \
           clang \
-          libclang-dev
+          libclang-dev \
+          coinor-cbc \
+          coinor-libcbc-dev
 
     - name: Build documentation
       run: cargo doc --no-deps --all-features
