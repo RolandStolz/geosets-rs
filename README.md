@@ -1,7 +1,8 @@
 # geosets-rs
 
 [![CI](https://github.com/STZRoland/geosets-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/STZRoland/geosets-rs/actions/workflows/ci.yml)
-[![Coverage](https://github.com/STZRoland/geosets-rs/blob/main/coverage.svg)](https://github.com/STZRoland/geosets-rs/actions/workflows/ci.yml)
+<!-- [![Coverage](https://github.com/STZRoland/geosets-rs/blob/main/coverage.svg)](https://github.com/STZRoland/geosets-rs/actions/workflows/ci.yml) -->
+![Coverage](https://img.shields.io/badge/coverage-${{steps.coverage.outputs.percentage}}%25-brightgreen)
 [![Crates.io](https://img.shields.io/crates/v/geosets-rs)](https://crates.io/crates/geosets-rs)
 [![docs.rs](https://docs.rs/geosets-rs/badge.svg)](https://docs.rs/geosets-rs)
 [![License](https://img.shields.io/crates/l/geosets-rs)](LICENSE)

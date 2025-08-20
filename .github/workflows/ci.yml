@@ -108,22 +108,24 @@ jobs:
           libcdd-dev \
           libopenblas-dev \
           liblapack-dev \
-          gfortran \
           pkg-config \
           clang \
           libclang-dev \
           coinor-cbc \
           coinor-libcbc-dev
 
-    - name: Generate code coverage
-      run: |
-        cargo llvm-cov --all-features --workspace --json --output-path coverage.json
-        cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-        cargo llvm-cov report --json --output-path coverage-summary.json
+    # - name: Generate code coverage
+    #   run: |
+    #     cargo llvm-cov --all-features --workspace --json --output-path coverage.json
+    #     cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+    #     cargo llvm-cov report --json --output-path coverage-summary.json
 
-    - name: Update Coverage Badge
-      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      uses: we-cli/coverage-badge-action@main
+    - name: Extract coverage percentage
+      id: coverage
+      run: |
+        COVERAGE=$(cargo llvm-cov --all-features --workspace --summary-only | grep -oP 'lines.*?(\d+\.\d+)%' | grep -oP '\d+\.\d+')
+        echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+        echo "Coverage: $COVERAGE%"
 
   security:
     name: Security Audit
@@ -163,7 +165,6 @@ jobs:
           libcdd-dev \
           libopenblas-dev \
           liblapack-dev \
-          gfortran \
           pkg-config \
           clang \
           libclang-dev \
@@ -172,6 +173,16 @@ jobs:
 
     - name: Build documentation
       run: cargo doc --no-deps --all-features
+
+    - name: Setup Pages
+      if: github.ref == 'refs/heads/main'
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: target/doc
 
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
