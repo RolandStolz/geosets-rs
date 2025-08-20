@@ -119,52 +119,14 @@ jobs:
           coinor-cbc \
           coinor-libcbc-dev
 
-    # - name: Generate code coverage
-    #   run: |
-    #     cargo llvm-cov --all-features --workspace --json --output-path coverage.json
-    #     cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-    #     cargo llvm-cov report --json --output-path coverage-summary.json
-
-    # - name: Extract coverage percentage
-    #   id: coverage
-    #   run: |
-    #     COVERAGE=$(cargo llvm-cov --all-features --workspace --summary-only | grep -oP 'lines.*?(\d+\.\d+)%' | grep -oP '\d+\.\d+')
-    #     echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-    #     echo "Coverage: $COVERAGE%"
-    - name: Extract coverage percentage
-      id: coverage
+    - name: Generate code coverage
       run: |
-        # Generate coverage and capture output
-        COVERAGE_OUTPUT=$(cargo llvm-cov --all-features --workspace --summary-only 2>&1)
-        echo "Full coverage output:"
-        echo "$COVERAGE_OUTPUT"
-        
-        # Try multiple regex patterns to extract percentage
-        COVERAGE=$(echo "$COVERAGE_OUTPUT" | grep -oP '\d+\.\d+(?=%)' | head -1)
-        
-        if [ -z "$COVERAGE" ]; then
-          # Fallback: try different pattern
-          COVERAGE=$(echo "$COVERAGE_OUTPUT" | grep -oP 'lines.*?(\d+\.\d+)%' | grep -oP '\d+\.\d+' | head -1)
-        fi
-        
-        if [ -z "$COVERAGE" ]; then
-          # Second fallback: use detailed JSON output
-          cargo llvm-cov --all-features --workspace --json --output-path coverage.json
-          COVERAGE=$(python3 -c "
-        import json
-        with open('coverage.json', 'r') as f:
-            data = json.load(f)
-        print(f\"{data['data'][0]['totals']['lines']['percent']:.1f}\")
-          ")
-        fi
-        
-        if [ -z "$COVERAGE" ]; then
-          echo "Could not extract coverage percentage"
-          exit 1
-        fi
-        
-        echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-        echo "Coverage: $COVERAGE%"
+        cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./lcov.info
 
   security:
     name: Security Audit
@@ -216,6 +178,9 @@ jobs:
     - name: Setup Pages
       if: github.ref == 'refs/heads/main'
       uses: actions/configure-pages@v4
+
+    - name: Fix docs index
+      run: ln -sf geosets_rs/index.html target/doc/index.html
 
     - name: Upload artifact
       if: github.ref == 'refs/heads/main'
