@@ -1,6 +1,3 @@
-use bindgen;
-
-// build.rs
 fn main() {
     // Tell Cargo to link against libcdd
     println!("cargo:rustc-link-lib=cdd");
