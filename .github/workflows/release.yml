@@ -36,7 +36,6 @@ jobs:
           libcdd-dev \
           libopenblas-dev \
           liblapack-dev \
-          gfortran \
           pkg-config \
           clang \
           libclang-dev \
@@ -76,10 +75,11 @@ jobs:
           libcdd-dev \
           libopenblas-dev \
           liblapack-dev \
-          gfortran \
           pkg-config \
           clang \
           libclang-dev
+          coinor-cbc \
+          coinor-libcbc-dev
 
     - name: Publish to crates.io
       run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
