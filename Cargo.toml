@@ -3,6 +3,14 @@ name = "geosets-rs"
 version = "0.1.0"
 edition = "2024"
 authors = ["Roland Stolz <roland.stolz9@gmail.com>"]
+description = "A Rust library for continuous set arithmetic."
+documentation = "https://rolandstolz.github.io/geosets-rs/geosets_rs/"
+readme = "README.md"
+repository = "https://rolandstolz.github.io/"
+license = "MIT"
+license-file = "LICENSE"
+keywords = ["set arithmetic", "convex sets", "zonotope", "polytope"]
+categories = ["mathematics"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

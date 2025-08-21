@@ -179,8 +179,10 @@ jobs:
       if: github.ref == 'refs/heads/main'
       uses: actions/configure-pages@v4
 
-    - name: Fix docs index
-      run: ln -sf geosets_rs/index.html target/doc/index.html
+    - name: Move docs to root
+      run: |
+        rm -rf target/doc/*
+        mv target/doc/geosets_rs/* target/doc/
 
     - name: Upload artifact
       if: github.ref == 'refs/heads/main'

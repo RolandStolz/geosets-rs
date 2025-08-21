@@ -6,7 +6,7 @@
 [![docs.rs](https://docs.rs/geosets-rs/badge.svg)](https://docs.rs/geosets-rs)
 [![License](https://img.shields.io/crates/l/geosets-rs)](LICENSE)
 
-A Rust library for geometric set arithmetic
+A Rust library for continuous set arithmetic.
 
 ## Features
 
