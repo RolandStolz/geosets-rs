@@ -41,6 +41,8 @@ brew install cddlib openblas lapack
 ## Usage
 
 ```rust
+use geosets_rs::{HPolytope, sets::GeoSet};
+
 let set = HPolytope::from_random(2, 4).unwrap();
 
 // Convert to vertices
@@ -55,14 +57,16 @@ let translation = ndarray::Array1::ones(2);
 let translated = set.translate(&translation).unwrap();
 
 // Plot
-let mut plot = translated.plot((0, 1), true, true).unwrap();
+let mut plot = translated.plot((0, 1), true, false).unwrap();
 
 // Plot with original
 let original_trace = set
     .create_trace((0, 1), Some("Original VPolytope"))
     .unwrap();
 plot.add_trace(original_trace);
-plot.show();
+
+// Uncomment to show
+// plot.show();
 ```
 
 ## License
