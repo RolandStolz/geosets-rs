@@ -1,4 +1,4 @@
-use geosets_rs::cddlib_rs::compute_polytope_vertices;
+use geosets_rs::compute_polytope_vertices;
 use ndarray::{Array1, Array2};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

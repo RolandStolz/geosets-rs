@@ -9,6 +9,10 @@ use std::sync::Mutex;
 
 static CDD_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
+/// Computes the vertices of a polytope defined by the inequality Ax ≤ b.
+///
+/// This function uses rust bindings of the cddlib library to convert the H-representation
+/// (halfspace representation) to V-representation (vertex representation).
 pub fn compute_polytope_vertices(
     a: &Array2<f64>,
     b: &Array1<f64>,

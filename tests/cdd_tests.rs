@@ -1,5 +1,5 @@
 /// Tests for the `compute_polytope_vertices` function in the cddlib_rs module.
-use geosets_rs::cddlib_rs::compute_polytope_vertices;
+use geosets_rs::compute_polytope_vertices;
 use geosets_rs::sets::errors::SetOperationError;
 use ndarray::{Array2, array};
 use std::collections::HashSet;

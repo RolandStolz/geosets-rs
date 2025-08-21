@@ -8,7 +8,6 @@ documentation = "https://rolandstolz.github.io/geosets-rs/geosets_rs/"
 readme = "README.md"
 repository = "https://rolandstolz.github.io/"
 license = "MIT"
-license-file = "LICENSE"
 keywords = ["set-arithmetic", "convex-sets", "zonotope", "polytope"]
 categories = ["mathematics"]
 

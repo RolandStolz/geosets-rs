@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/RolandStolz/geosets-rs/badge.svg?branch=main)](https://coveralls.io/github/RolandStolz/geosets-rs?branch=main)
 [![Crates.io](https://img.shields.io/crates/v/geosets-rs)](https://crates.io/crates/geosets-rs)
 [![docs.rs](https://docs.rs/geosets-rs/badge.svg)](https://docs.rs/geosets-rs)
-[![License](https://img.shields.io/crates/l/geosets-rs)](LICENSE)
+[![License](https://img.shields.io/crates/l/geosets-rs)](https://github.com/your-username/geosets-rs/blob/main/LICENSE)
 
 A Rust library for continuous set arithmetic.
 
@@ -30,7 +30,7 @@ This library depends on several system libraries that need to be installed:
 
 #### Ubuntu/Debian
 ```bash
-sudo apt-get install libcdd-dev libopenblas-dev liblapack-dev gfortran pkg-config clang libclang-dev
+sudo apt-get install libcdd-dev libopenblas-dev liblapack-dev pkg-config clang libclang-dev coinor-cbc coinor-libcbc-dev
 ```
 
 #### macOS
