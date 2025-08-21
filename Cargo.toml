@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "https://rolandstolz.github.io/"
 license = "MIT"
 license-file = "LICENSE"
-keywords = ["set-arithmetic", "convex sets", "zonotope", "polytope"]
+keywords = ["set-arithmetic", "convex-sets", "zonotope", "polytope"]
 categories = ["mathematics"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
