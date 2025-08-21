@@ -179,10 +179,10 @@ jobs:
       if: github.ref == 'refs/heads/main'
       uses: actions/configure-pages@v4
 
-    - name: Move docs to root
+    - name: Add redirect index.html
       run: |
-        rm -rf target/doc/*
-        mv target/doc/geosets_rs/* target/doc/
+        CRATE_NAME=$(basename $(find target/doc -maxdepth 1 -type d ! -name doc ! -name target))
+        echo "<!DOCTYPE html><html><head><meta http-equiv=\"refresh\" content=\"0; url=$CRATE_NAME/\"></head><body></body></html>" > target/doc/index.html
 
     - name: Upload artifact
       if: github.ref == 'refs/heads/main'
