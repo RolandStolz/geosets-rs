@@ -181,8 +181,7 @@ jobs:
 
     - name: Add redirect index.html
       run: |
-        CRATE_NAME=$(basename $(find target/doc -maxdepth 1 -type d ! -name doc ! -name target))
-        echo "<!DOCTYPE html><html><head><meta http-equiv=\"refresh\" content=\"0; url=$CRATE_NAME/\"></head><body></body></html>" > target/doc/index.html
+        echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=geosets_rs/"></head><body></body></html>' > target/doc/index.html
 
     - name: Upload artifact
       if: github.ref == 'refs/heads/main'
