@@ -30,3 +30,7 @@ pub fn sign(vector: &Array1<f64>) -> Array1<f64> {
         }
     })
 }
+
+pub fn vector_leq(a: &Array1<f64>, b: &Array1<f64>) -> bool {
+    a.iter().zip(b.iter()).all(|(a_i, b_i)| a_i <= b_i)
+}

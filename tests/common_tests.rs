@@ -1,6 +1,8 @@
 use geosets_rs::order_vertices_clockwise;
 use geosets_rs::sets::GeoSet;
-use ndarray::{Array1, Array2, array};
+use ndarray::{Array1, Array2, Shape, array};
+use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::{Exp1, Uniform};
 use rstest::rstest;
 use std::collections::HashSet;
 
@@ -212,4 +214,19 @@ test_all_geosets!(test_plot_common, {
     let set = T::from_unit_box(2);
     let _trace = set.create_trace((0, 1), None).unwrap();
     let _plot = set.plot((0, 1), true, false).unwrap();
+});
+
+test_all_geosets!(test_containment_common, {
+    for dim in 2..5 {
+        let set = T::from_unit_box(dim);
+        let samples = Array2::random((10, dim), Uniform::new(-1.0, 1.0));
+
+        for point in samples.outer_iter() {
+            assert!(
+                set.contains_point(point.to_owned()).unwrap(),
+                "Point {:?} should be inside the unit box",
+                point
+            );
+        }
+    }
 });

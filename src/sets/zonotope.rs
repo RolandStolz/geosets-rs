@@ -160,6 +160,10 @@ impl GeoSet for Zonotope {
     fn degenerate(&self) -> bool {
         self.n_generators() == 0 || rank(&self.G).unwrap() < self.dim()
     }
+
+    fn contains_point(&self, point: Array1<f64>) -> Result<bool, SetOperationError> {
+        todo!()
+    }
 }
 
 #[cfg(test)]
