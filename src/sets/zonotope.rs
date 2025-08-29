@@ -1,7 +1,8 @@
 #![allow(unused)]
 use super::*;
-use crate::linalg_utils::{rank, sign};
+use crate::linalg_utils::{rank, sign, vector_all_close};
 use crate::qhull_wrapper::convex_hull_vertices;
+use good_lp::{Expression, Solution, SolverModel, constraint, default_solver, variable, variables};
 use itertools::Itertools;
 use ndarray::Shape;
 use ndarray_linalg::Determinant;
@@ -63,6 +64,66 @@ impl Zonotope {
 
     pub fn n_generators(&self) -> usize {
         self.G.nrows()
+    }
+
+    pub fn is_zero_centered(&self) -> bool {
+        self.c.iter().all(|&x| x.abs() < 1e-9)
+    }
+
+    pub fn zonotope_norm(&self, point: &Array1<f64>) -> Result<f64, SetOperationError> {
+        self._check_operand_dim(point.dim())?;
+
+        // if !self.is_zero_centered() {
+        //     return Err(SetOperationError::UnsupportedOperation {
+        //         message: "Zonotope must be zero-centered",
+        //     });
+        // }
+
+        let m = self.n_generators();
+        if self.degenerate() {
+            if vector_all_close(point, &self.c, 1e-9) {
+                return Ok(0.0);
+            } else {
+                return Ok(f64::INFINITY);
+            }
+        }
+
+        // Optimization problem
+
+        let mut vars = variables!();
+        let lambda = vars.add(variable().min(0));
+        let alpha: Vec<_> = (0..self.n_generators())
+            .map(|_| vars.add(variable()))
+            .collect();
+
+        let objective: Expression = lambda.into();
+        let mut problem = vars.minimise(objective).using(default_solver);
+
+        // G \alpha = x
+        for i in 0..self.dim() {
+            let g = &self.G.column(i);
+            // Iterate over dimensions, not generators
+            let expr: Expression = g
+                .iter()
+                .zip(&alpha)
+                .map(|(g_i, alpha_i)| *g_i * *alpha_i)
+                .sum();
+            problem = problem.with(expr.eq(point[i] - self.c[i]));
+        }
+
+        // \alpha \leq \lamdba, \alpha \geq -\lambda
+        for alpha_i in &alpha {
+            problem = problem.with(constraint!(*alpha_i <= lambda));
+            problem = problem.with(constraint!(*alpha_i >= -lambda));
+        }
+
+        match problem.solve() {
+            Ok(solution) => {
+                let lambda_val = solution.value(lambda);
+                Ok(lambda_val)
+            }
+            Err(_) => Ok(f64::INFINITY),
+        }
     }
 }
 
@@ -161,8 +222,8 @@ impl GeoSet for Zonotope {
         self.n_generators() == 0 || rank(&self.G).unwrap() < self.dim()
     }
 
-    fn contains_point(&self, point: Array1<f64>) -> Result<bool, SetOperationError> {
-        todo!()
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
+        Ok(self.zonotope_norm(point)? <= 1.0 + 1e-9)
     }
 }
 

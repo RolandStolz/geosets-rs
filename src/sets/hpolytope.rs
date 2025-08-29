@@ -266,9 +266,9 @@ impl GeoSet for HPolytope {
         residual.iter().any(|&x| (x - 0.0).abs() <= 1e-9)
     }
 
-    fn contains_point(&self, point: Array1<f64>) -> Result<bool, SetOperationError> {
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
         self._check_operand_dim(point.dim())?;
-        Ok(vector_leq(&self.A.dot(&point), &self.b))
+        Ok(vector_leq(&self.A.dot(point), &self.b))
     }
 }
 

@@ -151,7 +151,7 @@ impl GeoSet for Interval {
             .any(|(lb, ub)| (ub - lb).abs() < 1e-9)
     }
 
-    fn contains_point(&self, point: Array1<f64>) -> Result<bool, SetOperationError> {
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
         self._check_operand_dim(point.dim());
         Ok(vector_leq(&self.lb, &point) && vector_leq(&point, &self.ub))
     }

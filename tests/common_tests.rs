@@ -1,8 +1,8 @@
 use geosets_rs::order_vertices_clockwise;
 use geosets_rs::sets::GeoSet;
-use ndarray::{Array1, Array2, Shape, array};
+use ndarray::{Array1, Array2, array};
 use ndarray_rand::RandomExt;
-use ndarray_rand::rand_distr::{Exp1, Uniform};
+use ndarray_rand::rand_distr::Uniform;
 use rstest::rstest;
 use std::collections::HashSet;
 
@@ -223,7 +223,7 @@ test_all_geosets!(test_containment_common, {
 
         for point in samples.outer_iter() {
             assert!(
-                set.contains_point(point.to_owned()).unwrap(),
+                set.contains_point(&point.to_owned()).unwrap(),
                 "Point {:?} should be inside the unit box",
                 point
             );

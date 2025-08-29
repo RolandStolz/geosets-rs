@@ -141,7 +141,7 @@ impl GeoSet for VPolytope {
     /// Evaluates the feasibility of the optimization problem
     /// $\min 0$ \
     /// $\text{subject to } V \lambda = p; 1^\top \lambda = 1, \lambda \geq 0 b$ \
-    fn contains_point(&self, point: Array1<f64>) -> Result<bool, SetOperationError> {
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
         let mut vars = variables!();
         let lambda: Vec<_> = (0..self.n_vertices())
             .map(|_| vars.add(variable().min(0.0))) // \lambda \geq 0
@@ -163,8 +163,8 @@ impl GeoSet for VPolytope {
 
         // Try solving
         match problem.solve() {
-            Ok(_) => Ok(false), // feasible → not empty
-            Err(_) => Ok(true), // infeasible → empty
+            Ok(_) => Ok(true),   // feasible → not empty
+            Err(_) => Ok(false), // infeasible → empty
         }
     }
 }
