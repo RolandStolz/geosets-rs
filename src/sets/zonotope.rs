@@ -208,7 +208,7 @@ impl GeoSet for Zonotope {
     fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
         self._check_operand_dim(mat.dim().0)?;
         self.c = mat.dot(&self.c);
-        self.G = mat.dot(&self.G);
+        self.G = self.G.dot(&mat.t());
         Ok(())
     }
 
@@ -228,6 +228,7 @@ impl GeoSet for Zonotope {
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
 
@@ -238,5 +239,48 @@ mod tests {
 
         // Expect an error when unwrapping zono2
         assert!(zono.is_err());
+    }
+
+    #[test]
+    fn test_matmul_rotation() {
+        let G = array![[1.0, 0.0], [0.0, 1.0]]; // Two generators: [1,0] and [0,1]
+        let c = array![2.0, 3.0]; // Center at (2,3)
+        let mut zono = Zonotope::new(G, c).unwrap();
+
+        // Apply a 90-degree rotation matrix
+        let rotation_90 = array![[0.0, -1.0], [1.0, 0.0]];
+
+        zono.matmul_(&rotation_90).unwrap();
+
+        // After rotation:
+        // - Center (2,3) should become (-3,2)
+        // - Generator [1,0] should become [0,1]
+        // - Generator [0,1] should become [-1,0]
+
+        let expected_c = array![-3.0, 2.0];
+        let expected_G = array![[0.0, 1.0], [-1.0, 0.0]];
+
+        assert!(zono.c.abs_diff_eq(&expected_c, 1e-10));
+        assert!(zono.G.abs_diff_eq(&expected_G, 1e-10));
+    }
+
+    #[test]
+    fn test_matmul_scaling() {
+        let G = array![[2.0, 1.0], [1.0, 3.0]];
+        let c = array![1.0, 2.0];
+        let mut zono = Zonotope::new(G, c).unwrap();
+
+        // Scale by 2 in x, 3 in y
+        let scale = array![[2.0, 0.0], [0.0, 3.0]];
+
+        zono.matmul_(&scale).unwrap();
+
+        // Center should be scaled
+        let expected_c = array![2.0, 6.0];
+        // Generators should be transformed: [2,1] -> [4,3], [1,3] -> [2,9]
+        let expected_G = array![[4.0, 3.0], [2.0, 9.0]];
+
+        assert!(zono.c.abs_diff_eq(&expected_c, 1e-10));
+        assert!(zono.G.abs_diff_eq(&expected_G, 1e-10));
     }
 }

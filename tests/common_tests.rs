@@ -22,7 +22,7 @@ macro_rules! test_all_geosets {
 }
 
 // Used for testing
-fn to_set(vertices: &Array2<f64>) -> HashSet<Vec<u64>> {
+fn _vertices_to_set(vertices: &Array2<f64>) -> HashSet<Vec<u64>> {
     vertices
         .outer_iter()
         .map(|row| row.iter().map(|&x| x.to_bits()).collect::<Vec<u64>>())
@@ -124,7 +124,7 @@ test_all_geosets!(test_to_vertices_common, {
         [-1.0, -1.0, -1.0],
     ];
 
-    assert_eq!(to_set(&vertices), to_set(&expected));
+    assert_eq!(_vertices_to_set(&vertices), _vertices_to_set(&expected));
 });
 
 test_all_geosets!(test_degenerate_common, {
@@ -182,7 +182,7 @@ test_all_geosets!(test_minkowski_sum_common, {
 
     let expected = array![[2.0, -2.0], [2.0, 2.0], [-2.0, 2.0], [-2.0, -2.0],];
 
-    assert_eq!(to_set(&vertices), to_set(&expected));
+    assert_eq!(_vertices_to_set(&vertices), _vertices_to_set(&expected));
     assert_eq!(sum.center().unwrap(), array![0.0, 0.0]);
     assert!((sum.volume().unwrap() - 16.0).abs() < 1e-6);
 
@@ -204,7 +204,10 @@ test_all_geosets!(test_minkowski_sum_common, {
         [-2.0, -2.0, -2.0],
     ];
 
-    assert_eq!(to_set(&vertices_3d), to_set(&expected_3d));
+    assert_eq!(
+        _vertices_to_set(&vertices_3d),
+        _vertices_to_set(&expected_3d)
+    );
     assert_eq!(sum_3d.center().unwrap(), array![0.0, 0.0, 0.0]);
     // assert_eq!(sum_3d.volume().unwrap(), 64.0);
     assert!((sum_3d.volume().unwrap() - 64.0).abs() < 1e-6);
