@@ -1,6 +1,6 @@
 [package]
 name = "geosets-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Roland Stolz <roland.stolz9@gmail.com>"]
 description = "A Rust library for continuous set arithmetic."
