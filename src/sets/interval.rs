@@ -153,6 +153,6 @@ impl GeoSet for Interval {
 
     fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
         self._check_operand_dim(point.dim());
-        Ok(vector_leq(&self.lb, &point) && vector_leq(&point, &self.ub))
+        Ok(vector_leq(&self.lb, point) && vector_leq(point, &self.ub))
     }
 }

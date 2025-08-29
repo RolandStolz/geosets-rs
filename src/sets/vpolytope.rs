@@ -158,7 +158,7 @@ impl GeoSet for VPolytope {
         }
 
         // 1^\top \lambda = 1
-        let expr: Expression = lambda.iter().map(|li| *li).sum();
+        let expr: Expression = lambda.iter().copied().sum();
         problem = problem.with(expr.eq(1.0));
 
         // Try solving

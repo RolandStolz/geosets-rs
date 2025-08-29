@@ -32,7 +32,7 @@ impl CreateRandom for geosets_rs::HPolytope {
 impl CreateRandom for geosets_rs::VPolytope {
     fn create_random(dim: usize) -> Self {
         // Use 2^dim vertices for reasonable complexity, but cap at 16
-        let n_vertices = (2_usize).pow(dim as u32).min(16).max(4);
+        let n_vertices = (2_usize).pow(dim as u32).clamp(4, 16);
         geosets_rs::VPolytope::from_random(dim, n_vertices).unwrap()
     }
 }
