@@ -1,7 +1,8 @@
 #![allow(unused)]
 use super::*;
-use crate::linalg_utils::{rank, sign};
+use crate::linalg_utils::{rank, sign, vector_all_close};
 use crate::qhull_wrapper::convex_hull_vertices;
+use good_lp::{Expression, Solution, SolverModel, constraint, default_solver, variable, variables};
 use itertools::Itertools;
 use ndarray::Shape;
 use ndarray_linalg::Determinant;
@@ -63,6 +64,66 @@ impl Zonotope {
 
     pub fn n_generators(&self) -> usize {
         self.G.nrows()
+    }
+
+    pub fn is_zero_centered(&self) -> bool {
+        self.c.iter().all(|&x| x.abs() < 1e-9)
+    }
+
+    pub fn zonotope_norm(&self, point: &Array1<f64>) -> Result<f64, SetOperationError> {
+        self._check_operand_dim(point.dim())?;
+
+        // if !self.is_zero_centered() {
+        //     return Err(SetOperationError::UnsupportedOperation {
+        //         message: "Zonotope must be zero-centered",
+        //     });
+        // }
+
+        let m = self.n_generators();
+        if self.degenerate() {
+            if vector_all_close(point, &self.c, 1e-9) {
+                return Ok(0.0);
+            } else {
+                return Ok(f64::INFINITY);
+            }
+        }
+
+        // Optimization problem
+
+        let mut vars = variables!();
+        let lambda = vars.add(variable().min(0));
+        let alpha: Vec<_> = (0..self.n_generators())
+            .map(|_| vars.add(variable()))
+            .collect();
+
+        let objective: Expression = lambda.into();
+        let mut problem = vars.minimise(objective).using(default_solver);
+
+        // G \alpha = x
+        for i in 0..self.dim() {
+            let g = &self.G.column(i);
+            // Iterate over dimensions, not generators
+            let expr: Expression = g
+                .iter()
+                .zip(&alpha)
+                .map(|(g_i, alpha_i)| *g_i * *alpha_i)
+                .sum();
+            problem = problem.with(expr.eq(point[i] - self.c[i]));
+        }
+
+        // \alpha \leq \lamdba, \alpha \geq -\lambda
+        for alpha_i in &alpha {
+            problem = problem.with(constraint!(*alpha_i <= lambda));
+            problem = problem.with(constraint!(*alpha_i >= -lambda));
+        }
+
+        match problem.solve() {
+            Ok(solution) => {
+                let lambda_val = solution.value(lambda);
+                Ok(lambda_val)
+            }
+            Err(_) => Ok(f64::INFINITY),
+        }
     }
 }
 
@@ -147,7 +208,7 @@ impl GeoSet for Zonotope {
     fn matmul_(&mut self, mat: &Array2<f64>) -> Result<(), SetOperationError> {
         self._check_operand_dim(mat.dim().0)?;
         self.c = mat.dot(&self.c);
-        self.G = mat.dot(&self.G);
+        self.G = self.G.dot(&mat.t());
         Ok(())
     }
 
@@ -160,9 +221,14 @@ impl GeoSet for Zonotope {
     fn degenerate(&self) -> bool {
         self.n_generators() == 0 || rank(&self.G).unwrap() < self.dim()
     }
+
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
+        Ok(self.zonotope_norm(point)? <= 1.0 + 1e-9)
+    }
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
 
@@ -173,5 +239,48 @@ mod tests {
 
         // Expect an error when unwrapping zono2
         assert!(zono.is_err());
+    }
+
+    #[test]
+    fn test_matmul_rotation() {
+        let G = array![[1.0, 0.0], [0.0, 1.0]]; // Two generators: [1,0] and [0,1]
+        let c = array![2.0, 3.0]; // Center at (2,3)
+        let mut zono = Zonotope::new(G, c).unwrap();
+
+        // Apply a 90-degree rotation matrix
+        let rotation_90 = array![[0.0, -1.0], [1.0, 0.0]];
+
+        zono.matmul_(&rotation_90).unwrap();
+
+        // After rotation:
+        // - Center (2,3) should become (-3,2)
+        // - Generator [1,0] should become [0,1]
+        // - Generator [0,1] should become [-1,0]
+
+        let expected_c = array![-3.0, 2.0];
+        let expected_G = array![[0.0, 1.0], [-1.0, 0.0]];
+
+        assert!(zono.c.abs_diff_eq(&expected_c, 1e-10));
+        assert!(zono.G.abs_diff_eq(&expected_G, 1e-10));
+    }
+
+    #[test]
+    fn test_matmul_scaling() {
+        let G = array![[2.0, 1.0], [1.0, 3.0]];
+        let c = array![1.0, 2.0];
+        let mut zono = Zonotope::new(G, c).unwrap();
+
+        // Scale by 2 in x, 3 in y
+        let scale = array![[2.0, 0.0], [0.0, 3.0]];
+
+        zono.matmul_(&scale).unwrap();
+
+        // Center should be scaled
+        let expected_c = array![2.0, 6.0];
+        // Generators should be transformed: [2,1] -> [4,3], [1,3] -> [2,9]
+        let expected_G = array![[4.0, 3.0], [2.0, 9.0]];
+
+        assert!(zono.c.abs_diff_eq(&expected_c, 1e-10));
+        assert!(zono.G.abs_diff_eq(&expected_G, 1e-10));
     }
 }

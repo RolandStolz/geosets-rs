@@ -16,6 +16,9 @@ pub enum SetOperationError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("Unsupported operation, {message}")]
+    UnsupportedOperation { message: String },
+
     #[error("Optimization failed: {source}")]
     InfeasibleOptimization {
         #[source]

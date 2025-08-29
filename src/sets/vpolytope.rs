@@ -3,6 +3,7 @@ use crate::linalg_utils::{argmax, rank};
 use crate::qhull_wrapper::{convex_hull, convex_hull_vertices, qhull_volume};
 
 use super::*;
+use good_lp::{Expression, Solution, SolverModel, default_solver, variable, variables};
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
 use plotly::common::Mode;
@@ -135,6 +136,36 @@ impl GeoSet for VPolytope {
         }
         let mat = &self.vertices - self.vertices.mean_axis(Axis(0)).unwrap();
         rank(&mat).unwrap() < self.dim()
+    }
+
+    /// Evaluates the feasibility of the optimization problem
+    /// $\min 0$ \
+    /// $\text{subject to } V \lambda = p; 1^\top \lambda = 1, \lambda \geq 0 b$ \
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
+        let mut vars = variables!();
+        let lambda: Vec<_> = (0..self.n_vertices())
+            .map(|_| vars.add(variable().min(0.0))) // \lambda \geq 0
+            .collect();
+
+        // Build the problem with dummy objective
+        let mut problem = vars.minimise(0.0).using(default_solver);
+
+        // Add constraint V \lambda = p
+        for i in 0..self.dim() {
+            let v = self.vertices.column(i);
+            let expr: Expression = v.iter().zip(&lambda).map(|(vi, li)| *vi * *li).sum();
+            problem = problem.with(expr.eq(point[i]));
+        }
+
+        // 1^\top \lambda = 1
+        let expr: Expression = lambda.iter().copied().sum();
+        problem = problem.with(expr.eq(1.0));
+
+        // Try solving
+        match problem.solve() {
+            Ok(_) => Ok(true),   // feasible → not empty
+            Err(_) => Ok(false), // infeasible → empty
+        }
     }
 }
 

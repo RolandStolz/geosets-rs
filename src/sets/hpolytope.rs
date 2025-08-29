@@ -2,7 +2,7 @@
 use super::*;
 use crate::VPolytope;
 use crate::cddlib_rs::compute_polytope_vertices;
-use crate::linalg_utils::rank;
+use crate::linalg_utils::{rank, vector_leq};
 use good_lp::{Expression, Solution, SolverModel, default_solver, variable, variables};
 use ndarray_linalg::Norm;
 use ndarray_rand::RandomExt;
@@ -80,7 +80,7 @@ impl GeoSet for HPolytope {
         self.A.dim().1
     }
 
-    /// Solves the optimization problem: \
+    /// Evaluates the feasibility of the optimization problem
     /// $\min 0$ \
     /// $\text{subject to } A^\top x \leq b$ \
     fn empty(&self) -> Result<bool, SetOperationError> {
@@ -264,6 +264,11 @@ impl GeoSet for HPolytope {
 
         // Check if any inequality is tight (≈ equality)
         residual.iter().any(|&x| (x - 0.0).abs() <= 1e-9)
+    }
+
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
+        self._check_operand_dim(point.dim())?;
+        Ok(vector_leq(&self.A.dot(point), &self.b))
     }
 }
 

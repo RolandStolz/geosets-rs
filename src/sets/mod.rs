@@ -28,6 +28,7 @@ pub trait GeoSet: Sized + Clone {
         direction: Array1<f64>,
     ) -> Result<(Array1<f64>, f64), SetOperationError>;
     fn volume(&self) -> Result<f64, SetOperationError>;
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError>;
 
     // Operations
     fn minkowski_sum_(&mut self, other: &Self) -> Result<(), SetOperationError>;

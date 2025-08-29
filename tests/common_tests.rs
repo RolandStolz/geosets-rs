@@ -1,6 +1,8 @@
 use geosets_rs::order_vertices_clockwise;
 use geosets_rs::sets::GeoSet;
 use ndarray::{Array1, Array2, array};
+use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::Uniform;
 use rstest::rstest;
 use std::collections::HashSet;
 
@@ -20,7 +22,7 @@ macro_rules! test_all_geosets {
 }
 
 // Used for testing
-fn to_set(vertices: &Array2<f64>) -> HashSet<Vec<u64>> {
+fn _vertices_to_set(vertices: &Array2<f64>) -> HashSet<Vec<u64>> {
     vertices
         .outer_iter()
         .map(|row| row.iter().map(|&x| x.to_bits()).collect::<Vec<u64>>())
@@ -122,7 +124,7 @@ test_all_geosets!(test_to_vertices_common, {
         [-1.0, -1.0, -1.0],
     ];
 
-    assert_eq!(to_set(&vertices), to_set(&expected));
+    assert_eq!(_vertices_to_set(&vertices), _vertices_to_set(&expected));
 });
 
 test_all_geosets!(test_degenerate_common, {
@@ -180,7 +182,7 @@ test_all_geosets!(test_minkowski_sum_common, {
 
     let expected = array![[2.0, -2.0], [2.0, 2.0], [-2.0, 2.0], [-2.0, -2.0],];
 
-    assert_eq!(to_set(&vertices), to_set(&expected));
+    assert_eq!(_vertices_to_set(&vertices), _vertices_to_set(&expected));
     assert_eq!(sum.center().unwrap(), array![0.0, 0.0]);
     assert!((sum.volume().unwrap() - 16.0).abs() < 1e-6);
 
@@ -202,7 +204,10 @@ test_all_geosets!(test_minkowski_sum_common, {
         [-2.0, -2.0, -2.0],
     ];
 
-    assert_eq!(to_set(&vertices_3d), to_set(&expected_3d));
+    assert_eq!(
+        _vertices_to_set(&vertices_3d),
+        _vertices_to_set(&expected_3d)
+    );
     assert_eq!(sum_3d.center().unwrap(), array![0.0, 0.0, 0.0]);
     // assert_eq!(sum_3d.volume().unwrap(), 64.0);
     assert!((sum_3d.volume().unwrap() - 64.0).abs() < 1e-6);
@@ -212,4 +217,19 @@ test_all_geosets!(test_plot_common, {
     let set = T::from_unit_box(2);
     let _trace = set.create_trace((0, 1), None).unwrap();
     let _plot = set.plot((0, 1), true, false).unwrap();
+});
+
+test_all_geosets!(test_containment_common, {
+    for dim in 2..5 {
+        let set = T::from_unit_box(dim);
+        let samples = Array2::random((10, dim), Uniform::new(-1.0, 1.0));
+
+        for point in samples.outer_iter() {
+            assert!(
+                set.contains_point(&point.to_owned()).unwrap(),
+                "Point {:?} should be inside the unit box",
+                point
+            );
+        }
+    }
 });

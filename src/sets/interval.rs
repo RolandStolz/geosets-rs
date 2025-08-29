@@ -1,4 +1,6 @@
 #![allow(unused)]
+use crate::linalg_utils::vector_leq;
+
 use super::*;
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand_distr::{Exp1, Uniform};
@@ -147,5 +149,10 @@ impl GeoSet for Interval {
             .iter()
             .zip(self.ub.iter())
             .any(|(lb, ub)| (ub - lb).abs() < 1e-9)
+    }
+
+    fn contains_point(&self, point: &Array1<f64>) -> Result<bool, SetOperationError> {
+        self._check_operand_dim(point.dim());
+        Ok(vector_leq(&self.lb, point) && vector_leq(point, &self.ub))
     }
 }
